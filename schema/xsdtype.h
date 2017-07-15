@@ -27,7 +27,7 @@
 #include <QMap>
 #include <QString>
 
-#include <common/qname.h>
+#include <qname.h>
 #include <kode_export.h>
 
 #include "xmlelement.h"
@@ -37,7 +37,7 @@ namespace XSD {
 class SCHEMA_EXPORT XSDType : public XmlElement
 {
   public:
-    typedef QList<const XSDType*> List;
+    typedef QList<XSDType*> List;
 
     enum ContentModel
     {
@@ -87,6 +87,7 @@ class SCHEMA_EXPORT XSDType : public XmlElement
     XSDType &operator=( const XSDType &other );
 
     void setContentModel( ContentModel contentModel);
+    virtual void setAnonymous( bool anonymous ) = 0;
     ContentModel contentModel() const;
 
     virtual bool isSimple() const

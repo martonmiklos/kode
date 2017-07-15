@@ -23,8 +23,6 @@
 
 #include <schema/parser.h>
 
-#include <kdebug.h>
-
 #include <QDebug>
 #include <QXmlStreamReader>
 #include <math.h>
@@ -59,7 +57,7 @@ Schema::Document ParserXml::parse( QFile &file )
     }
   }
   if ( xml.hasError() ) {
-    kError() << "XML parsing error in line" << xml.lineNumber() << ": " <<
+    qDebug() << "XML parsing error in line" << xml.lineNumber() << ": " <<
       xml.errorString();
   }
   

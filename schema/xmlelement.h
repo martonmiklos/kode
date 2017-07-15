@@ -24,7 +24,7 @@
 
 #include "annotation.h"
 
-#include <common/qname.h>
+#include <qname.h>
 #include <kode_export.h>
 
 #include <QString>

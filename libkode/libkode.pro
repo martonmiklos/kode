@@ -4,14 +4,23 @@
 #
 #-------------------------------------------------
 
-QT       += xml
+QT       += xml network
 
 QT       -= gui
 
-TARGET = libkode
+TARGET = kode
 TEMPLATE = lib
 
 DEFINES += LIBKODE_LIBRARY
+
+OBJECTS_DIR = build
+MOC_DIR = build
+UI_DIR = build
+RCC_DIR=build
+
+DESTDIR = bin
+
+CONFIG += DEBUG
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -25,13 +34,41 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        libkode.cpp
+    variable.cpp \
+    typedef.cpp \
+    style.cpp \
+    statemachine.cpp \
+    printer.cpp \
+    membervariable.cpp \
+    license.cpp \
+    function.cpp \
+    file.cpp \
+    enum.cpp \
+    code.cpp \
+    class.cpp \
+    automakefile.cpp
 
 HEADERS += \
-        libkode.h \
-        libkode_global.h 
+    variable.h \
+    typedef.h \
+    style.h \
+    statemachine.h \
+    printer.h \
+    membervariable.h \
+    license.h \
+    function.h \
+    file.h \
+    enum.h \
+    code.h \
+    class.h
+
+include(../common/common.pri)
+include(../schema/schema.pri)
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+
+INCLUDEPATH += "../common"

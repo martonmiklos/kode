@@ -33,7 +33,7 @@ namespace XSD {
 
 class TypesTable
 {
-  public:
+public:
     TypesTable();
     TypesTable( const TypesTable &other );
     ~TypesTable();
@@ -67,11 +67,67 @@ class TypesTable
     void setTargetNamespace( const QString &nameSpace );
     QString targetNamespace() const;
 
-  private:
-    class Private;
+private:
+    class Private {
+    public:
+        Private()
+        {
+            mCurrentId = XSDType::ANYURI + 1;
+
+            //map of simple types
+            mBasicTypes["string"] = XSDType::STRING;
+            mBasicTypes["integer"] = XSDType::INTEGER;
+            mBasicTypes["int"] = XSDType::INT;
+            mBasicTypes["byte"] = XSDType::BYTE;
+            mBasicTypes["unsignedByte"] = XSDType::UBYTE;
+            mBasicTypes["positiveInteger"] = XSDType::POSINT;
+            mBasicTypes["unsignedInt"] = XSDType::UINT;
+            mBasicTypes["long"] = XSDType::LONG;
+            mBasicTypes["unsignedLong"] = XSDType::ULONG;
+            mBasicTypes["short"] = XSDType::SHORT;
+            mBasicTypes["unsignedShort"] = XSDType::USHORT;
+            mBasicTypes["decimal"] = XSDType::DECIMAL;
+            mBasicTypes["float"] = XSDType::FLOAT;
+            mBasicTypes["double"] = XSDType::DOUBLE;
+            mBasicTypes["boolean"] = XSDType::BOOLEAN;
+            mBasicTypes["time"] = XSDType::TIME;
+            mBasicTypes["dateTime"] = XSDType::DATETIME;
+            mBasicTypes["date"] = XSDType::DATE;
+            mBasicTypes["token"] = XSDType::TOKEN;
+            mBasicTypes["QName"] = XSDType::QNAME;
+            mBasicTypes["NCName"] = XSDType::NCNAME;
+            mBasicTypes["NMTOKEN"] = XSDType::NMTOKEN;
+            mBasicTypes["NMTOKENS"] = XSDType::NMTOKENS;
+            mBasicTypes["base64Binary"] = XSDType::BASE64BIN;
+            mBasicTypes["hexBinary"] = XSDType::HEXBIN;
+            mBasicTypes["anyType"] = XSDType::ANYTYPE;
+            mBasicTypes["any"] = XSDType::ANY;
+            mBasicTypes["anyURI"] = XSDType::ANYURI;
+        }
+
+        XSDType::List mTypes;
+
+        //maintains a map of all user defined type names and their ids
+        QMap<QString, int> mUserTypes;
+        QMap<QString, int> mBasicTypes;
+
+        int mCurrentId;
+
+        QString mNameSpace;
+
+        struct ExternRef
+        {
+            int localTypeId;
+            QName qname;
+        };
+
+        QList<struct ExternRef> mExternRefs;
+    };
+
     Private *d;
 };
 
-}
+
+} // end XSD namespace
 
 #endif

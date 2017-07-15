@@ -21,11 +21,11 @@
 #ifndef ATTRIBUTEGROUP_H
 #define ATTRIBUTEGROUP_H
 
-#include <schema/xmlelement.h>
-#include <schema/attribute.h>
-#include <common/qname.h>
-
 #include <kode_export.h>
+#include <qname.h>
+
+#include "attribute.h"
+#include "xmlelement.h"
 
 namespace XSD {
 

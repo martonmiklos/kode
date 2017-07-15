@@ -31,14 +31,14 @@
 
 #include <schema/parser.h>
 
-#include <kaboutdata.h>
+/*#include <kaboutdata.h>
 #include <kapplication.h>
-#include <kdebug.h>
+#include <qDebug.h>
 #include <klocale.h>
 #include <kcmdlineargs.h>
 #include <kglobal.h>
 #include <kconfig.h>
-#include <kstandarddirs.h>
+#include <kstandarddirs.h>*/
 
 #include <QFile>
 #include <QTextStream>
