@@ -27,7 +27,6 @@
 #include <common/messagehandler.h>
 #include <common/parsercontext.h>
 
-#include <kdebug.h>
 
 #include <QDebug>
 
@@ -101,6 +100,7 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
     e.setIdentifier( element.name() );
     e.setName( element.name() );
     XSD::ComplexType complexType = types.complexType( element );
+
     if ( complexType.contentModel() == XSD::XSDType::MIXED ) {
       if ( mVerbose ) {
         qDebug() << "  Mixed";
@@ -108,6 +108,7 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
       e.setText( true );
     } else if ( complexType.contentModel() == XSD::XSDType::SIMPLE &&
             !complexType.baseTypeName().isEmpty() ) {
+      qWarning() << complexType.baseTypeName().qname();
       e.setBaseType( Schema::Node::typeFromString(complexType.baseTypeName().qname()) );
     }
 
@@ -115,14 +116,12 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
     if ( e.type() == Schema::Node::None ) {
       bool found = false;
       XSD::SimpleType simpleType = types.simpleType( element.type().qname(), &found );
-
       // check if element having restrictions
       if ( !found )
         e.setType( Schema::Node::ComplexType );
       else {
-        if ( simpleType.facetType() &  XSD::SimpleType::ENUM ) {
-          setType( e, simpleType );
-        }
+        e.setType( Schema::Node::typeFromString(simpleType.baseTypeName().qname()) );
+        setType( e, simpleType );
       }
     }
     foreach( XSD::Element subElement, complexType.elements() ) {
@@ -221,6 +220,10 @@ void ParserXsd::setType( Schema::Node &node, const XSD::SimpleType &simpleType )
     } else if ( simpleType.facetType() == XSD::SimpleType::ENUM ) {
       node.setType( Schema::Node::Enumeration );
       node.setEnumerationValues( simpleType.facetEnums() );
+    } else if ( simpleType.facetType() & XSD::SimpleType::FRAC) {
+      node.setFractionalDigits( simpleType.facetFractionDigits());
+    } else if ( simpleType.facetType() & XSD::SimpleType::TOT) {
+      node.setTotalDigits( simpleType.facetTotalDigits());
     } else {
       qDebug() << "SimpleType::facetType(): " << simpleType.facetType()
         << " not supported.";

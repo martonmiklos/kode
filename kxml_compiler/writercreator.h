@@ -37,7 +37,7 @@ class WriterCreator
 protected:
     void createIndenter( KODE::File & );
 
-    QString dataToStringConverter( const QString &data, Schema::Node::Type );
+    QString dataToStringConverter(const QString &data, const Schema::Node &element );
 
     KODE::Code createAttributeWriter( const Schema::Element &element );
 

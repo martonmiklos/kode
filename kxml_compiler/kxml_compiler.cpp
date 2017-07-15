@@ -29,22 +29,25 @@
 #include <libkode/printer.h>
 #include <libkode/typedef.h>
 
-#include <kaboutdata.h>
-#include <kdebug.h>
+/*#include <kaboutdata.h>
+#include <qDebug.h>
 #include <klocale.h>
 #include <kcmdlineargs.h>
 #include <kglobal.h>
 #include <kconfig.h>
 #include <kstandarddirs.h>
-#include <kurl.h>
+#include <kurl.h>*/
 
+#include <QCoreApplication>
+#include <QCommandLineParser>
+#include <QDebug>
+#include <QDomDocument>
 #include <QFile>
-#include <QTextStream>
-#include <qdom.h>
-#include <QRegExp>
-#include <QMap>
-#include <QList>
 #include <QFileInfo>
+#include <QList>
+#include <QMap>
+#include <QRegExp>
+#include <QTextStream>
 
 #include <iostream>
 
@@ -52,96 +55,139 @@ using namespace KXML;
 
 int main( int argc, char **argv )
 {
-  QCoreApplication app( argc, argv );
-  KAboutData aboutData( "kxml_compiler", 0, ki18n("KDE xml compiler"), "0.1",
-  	ki18n("KDE XML Compiler") , KAboutData::License_LGPL );
-  aboutData.addAuthor( ki18n("Cornelius Schumacher"), KLocalizedString(), "schumacher@kde.org" );
-  KComponentData data( &aboutData );
-  KGlobal::setActiveComponent( data );
+  QCoreApplication app(argc, argv);
+  QCoreApplication::setApplicationName("kxml_compiler");
+  QCoreApplication::setApplicationVersion("0.1");
 
-  KCmdLineArgs::init( argc, argv, &aboutData, KCmdLineArgs::CmdLineArgNone );
+  QCommandLineParser parser;
 
-  KCmdLineOptions options;
-  options.add("d");
-  options.add("directory <dir>", ki18n("Directory to generate files in"), ".");
-  options.add("verbose", ki18n("Generate debug output"));
-  options.add("+schema", ki18n("Schema of XML file"));
-  options.add("external-parser", ki18n("Generate parser in separate source file"));
-  options.add("xsd", ki18n("Schema is XML Schema"));
-  options.add("rng", ki18n("Schema is RelaxNG"));
-  options.add("xml", ki18n("Schema is example XML"));
-  options.add("use-kde", ki18n("Use KDE classes"));
-  options.add("license <license_id>", ki18n("License of generated files"), "gpl" );
-  options.add("namespace <name>", ki18n("Namespace for generated classes") );
-  options.add("export <name>", ki18n("Export declaration for generated classes") );
-  options.add("create-crud-functions", ki18n("Create functions for dealing with data suitable for CRUD model") );
-  options.add("dont-create-write-functions", ki18n("Do not create XML generating methods to the generated classes (useful for applications require XML parse only feature)") );
-  options.add("dont-create-parse-functions", ki18n("Do not create XML parsing methods to the generated classes (useful for applications require XML write only feature)") );
-  KCmdLineArgs::addCmdLineOptions( options );
+  parser.setApplicationDescription("KDE xml compiler");
+  parser.addHelpOption();
+  parser.addVersionOption();
 
-  KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-  bool verbose = args->isSet("verbose");
+  QCommandLineOption dirOption(
+              QStringList() << "d" << "directory",
+              QCoreApplication::translate("main", "Directory to generate files in"),
+              ".");
+  parser.addOption(dirOption);
 
-  if ( args->count() < 1 ) {
-    kError() <<"Too few arguments.";
-    return 1;
+  QCommandLineOption verboseOption(
+              "verbose",
+              QCoreApplication::translate("main", "Generate debug output"));
+  parser.addOption(verboseOption);
+
+  QCommandLineOption schemaOption(
+              "schema",
+              QCoreApplication::translate("main", "Schema of XML file"));
+  parser.addOption(schemaOption);
+
+  QCommandLineOption extParserOption(
+              "external-parser",
+              QCoreApplication::translate("main", "Generate parser in separate source file"));
+  parser.addOption(extParserOption);
+
+  QCommandLineOption xsdOption(
+              "xsd",
+              QCoreApplication::translate("main", "Schema is XML Schema"));
+  parser.addOption(xsdOption);
+
+  QCommandLineOption rngOption(
+              "rng",
+              QCoreApplication::translate("main", "Schema is RelaxNG"));
+  parser.addOption(rngOption);
+
+  QCommandLineOption xmlOption(
+              "xml",
+              QCoreApplication::translate("main", "Schema is example XML"));
+  parser.addOption(xmlOption);
+
+  QCommandLineOption useKdeOption(
+              "use-kde",
+              QCoreApplication::translate("main", "Use KDE classes"));
+  parser.addOption(useKdeOption);
+
+  QCommandLineOption licenseOption(
+              "license",
+              QCoreApplication::translate("main", "License of generated files. Possible values: gpl, bsd, lgpl"));
+  parser.addOption(licenseOption);
+
+  QCommandLineOption namespaceOption(
+              "namespace",
+              QCoreApplication::translate("main", "Namespace for generated classes"));
+  parser.addOption(namespaceOption);
+
+  QCommandLineOption exportOption(
+              "export",
+              QCoreApplication::translate("main", "Export declaration for generated classes"));
+  parser.addOption(exportOption);
+
+  QCommandLineOption createCRUDFunctionsOption(
+              "create-crud-functions",
+              QCoreApplication::translate("main", "Create functions for dealing with data suitable for CRUD model"));
+  parser.addOption(createCRUDFunctionsOption);
+
+  QCommandLineOption dontCreateWriteFunctionsOption(
+              "dont-create-write-functions",
+              QCoreApplication::translate("main", "Do not create XML generating methods to the generated classes (useful for applications require XML parse only feature)"));
+  parser.addOption(dontCreateWriteFunctionsOption);
+
+  QCommandLineOption dontCreateParseFunctionsOption(
+              "dont-create-parse-functions",
+              QCoreApplication::translate("main", "Do not create XML parsing methods to the generated classes (useful for applications require XML write only feature)"));
+  parser.addOption(dontCreateParseFunctionsOption);
+
+  if (!parser.parse(QCoreApplication::arguments())) {
+      //return -1;
   }
-  if ( args->count() > 1 ) {
-    kError() <<"Too many arguments.";
-    return 1;
-  }
 
-  QString baseDir = args->getOption( "directory" );
-  if ( !baseDir.endsWith( "/" ) ) baseDir.append( "/" );
+  QString schemaFilename = parser.positionalArguments().at(0);
 
-  QString schemaFilename = args->url( 0 ).path();
 
-  QString baseName = args->url( 0 ).fileName();
-  int pos = baseName.lastIndexOf( '.' );
-  if ( pos > 0 ) baseName = baseName.left( pos );
+  QFileInfo fi(parser.positionalArguments().at(0));
+  QString baseName = fi.baseName();
   baseName.remove( "_" );
 
 
   QFile schemaFile( schemaFilename );
   if ( !schemaFile.open( QIODevice::ReadOnly ) ) {
-    kError() <<"Unable to open '" << schemaFilename <<"'";
+    qDebug() <<"Unable to open '" << schemaFilename <<"'";
     return 1;
   }
 
-  if ( verbose ) {
-    kDebug() <<"Begin parsing";
+  if ( parser.isSet(verboseOption) ) {
+    qDebug() <<"Begin parsing";
   }
 
   Schema::Document schemaDocument;
 
-  QFileInfo fi( schemaFile );
-  if ( args->isSet( "xsd" ) || fi.suffix() == "xsd" ) {
+  fi = QFileInfo( schemaFile );
+  if ( parser.isSet( xsdOption ) || fi.suffix() == "xsd" ) {
     RNG::ParserXsd p;
-    p.setVerbose( verbose );
+    p.setVerbose( parser.isSet(verboseOption) );
     schemaDocument = p.parse( schemaFile );
 
     if ( schemaDocument.isEmpty() ) {
-      kError() <<"Error parsing schema '" << schemaFilename <<"'";
+      qDebug() <<"Error parsing schema '" << schemaFilename <<"'";
       return 1;
     }
-  } else if ( args->isSet( "rng" ) || fi.suffix() == "rng" ) {
+  } else if ( parser.isSet( rngOption ) || fi.suffix() == "rng" ) {
     QString errorMsg;
     int errorLine, errorCol;
     QDomDocument doc;
     if ( !doc.setContent( &schemaFile, false, &errorMsg, &errorLine, &errorCol ) ) {
-      kError() << errorMsg <<" at" << errorLine <<"," << errorCol;
+      qDebug() << errorMsg <<" at" << errorLine <<"," << errorCol;
       return 1;
     }
 
     RNG::ParserRelaxng p;
-    p.setVerbose( verbose );
+    p.setVerbose( parser.isSet(verboseOption) );
     RNG::Element *start = p.parse( doc.documentElement() );
     if ( !start ) {
-      kError() <<"Could not find start element";
+      qDebug() <<"Could not find start element";
       return 1;
     }
 
-    if ( verbose ) {
+    if ( parser.isSet(verboseOption) ) {
       p.dumpDefinitionMap();
     }
 
@@ -150,51 +196,51 @@ int main( int argc, char **argv )
     p.substituteReferences( start );
 
   #if 1
-    if ( verbose ) {
+    if ( parser.isSet(verboseOption) ) {
       std::cout << "--- TREE:" << std::endl;
       p.dumpTree( start );
     }
   #endif
 
     schemaDocument = p.convertToSchema( start );
-  } else if ( args->isSet( "xml" ) || fi.suffix() == "xml" ) {
+  } else if ( parser.isSet( "xml" ) || fi.suffix() == "xml" ) {
     ParserXml schemaParser;
-    schemaParser.setVerbose( verbose );
+    schemaParser.setVerbose( parser.isSet(verboseOption) );
     schemaDocument = schemaParser.parse( schemaFile );
   } else {
-    kError() <<"Unable to determine schema type.";
+    qDebug() <<"Unable to determine schema type.";
     return 1;
   }
 
-  if ( verbose ) {
+  if ( parser.isSet(verboseOption) ) {
     std::cout << "--- SCHEMA:" << std::endl;
     schemaDocument.dump();
 
-    kDebug() <<"Begin creating code";
+    qDebug() <<"Begin creating code";
   }
 
   Creator::XmlParserType pt;
-  if ( args->isSet( "external-parser" ) ) {
+  if ( parser.isSet( "external-parser" ) ) {
     pt = Creator::XmlParserDomExternal;
   } else {
     pt = Creator::XmlParserDom;
   }
 
   Creator c( schemaDocument, pt );
-  c.setVerbose( verbose );
-  c.setUseKde( args->isSet( "use-kde" ) );
-  c.setCreateCrudFunctions( args->isSet( "create-crud-functions" ) );
-  c.setCreateWriteFunctions( !args->isSet( "dont-create-write-functions" ) );
-  c.setCreateParseFunctions( !args->isSet( "dont-create-parse-functions" ) );
-  if ( args->isSet( "namespace" ) ) {
-    c.file().setNameSpace( args->getOption( "namespace" ) );
+  c.setVerbose( parser.isSet(verboseOption) );
+  c.setUseKde( parser.isSet( "use-kde" ) );
+  c.setCreateCrudFunctions( parser.isSet( "create-crud-functions" ) );
+  c.setCreateWriteFunctions( !parser.isSet( "dont-create-write-functions" ) );
+  c.setCreateParseFunctions( !parser.isSet( "dont-create-parse-functions" ) );
+  if ( parser.isSet( namespaceOption ) ) {
+    c.file().setNameSpace( parser.value(namespaceOption ) );
   }
-  if ( args->isSet( "export" ) ) {
-    c.setExportDeclaration( args->getOption( "export" ) );
+  if ( parser.isSet(exportOption ) ) {
+    c.setExportDeclaration( parser.value(exportOption) );
   }
 
-  if ( args->isSet( "license" ) ) {
-    QString l = args->getOption( "license" );
+  if ( parser.isSet(licenseOption) ) {
+    QString l = parser.value(licenseOption);
     if ( l == "gpl" ) {
       c.setLicense( KODE::License( KODE::License::GPL ) );
     } else if ( l == "bsd" ) {
@@ -204,8 +250,8 @@ int main( int argc, char **argv )
     }
   }
 
-  if ( verbose ) {
-    kDebug() <<"Create classes";
+  if ( parser.isSet(verboseOption) ) {
+    qDebug() <<"Create classes";
   }
 
   foreach( Schema::Element e, schemaDocument.usedElements() ) {
@@ -214,25 +260,25 @@ int main( int argc, char **argv )
     }
   }
 
-  if ( verbose ) {
-    kDebug() <<"Create parser";
+  if ( parser.isSet(verboseOption) ) {
+    qDebug() <<"Create parser";
   }
   c.create();
 
-  if ( verbose ) {
-    kDebug() <<"Begin printing code";
+  if ( parser.isSet(verboseOption) ) {
+    qDebug() <<"Begin printing code";
   }
   c.setFilename( baseName );
 
   KODE::Printer printer;
   printer.setCreationWarning( true );
-  printer.setGenerator( aboutData.appName() );
-  printer.setOutputDirectory( baseDir );
-  printer.setSourceFile( args->url( 0 ).fileName() );
+  printer.setGenerator( QCoreApplication::applicationName() );
+  printer.setOutputDirectory( parser.value(dirOption) );
+  printer.setSourceFile( parser.positionalArguments().at(0) );
 
   c.printFiles( printer );
 
-  if ( verbose ) {
-    kDebug() <<"Finished.";
+  if ( parser.isSet(verboseOption) ) {
+    qDebug() <<"Finished.";
   }
 }

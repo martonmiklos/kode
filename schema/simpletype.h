@@ -25,8 +25,9 @@
 
 #include <QStringList>
 
-#include <common/qname.h>
 #include "xsdtype.h"
+
+#include <qname.h>
 #include <kode_export.h>
 
 namespace XSD {
@@ -89,8 +90,8 @@ class SCHEMA_EXPORT SimpleType : public XSDType
     void setAnonymous( bool anonymous );
     bool isAnonymous() const;
 
-    bool isValidFacet( const QString &facet );
-    void setFacetValue( const QString &value );
+    FacetType isValidFacet( const QString &facet );
+    void setFacetValue(const FacetType type, const QString &value );
 
     int facetType() const;
 

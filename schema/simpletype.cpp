@@ -22,6 +22,8 @@
 
 #include "simpletype.h"
 
+#include <QDebug>
+
 namespace XSD {
 
 class SimpleType::Private
@@ -144,54 +146,64 @@ bool SimpleType::isAnonymous() const
   return d->mAnonymous;
 }
 
-bool SimpleType::isValidFacet( const QString &facet )
+SimpleType::FacetType SimpleType::isValidFacet( const QString &facet )
 {
   if ( d->mBaseTypeName.isEmpty() ) {
     qDebug( "isValidFacet:Unknown base type" );
-    return false;
+    return NONE;
   }
 
-  if ( facet == "length" )
-    d->mFacetId |= LENGTH;
-  else if ( facet == "minLength" )
-    d->mFacetId |= MINLEN;
-  else if ( facet == "maxLength" )
-    d->mFacetId |= MAXLEN;
-  else if ( facet == "enumeration" )
-    d->mFacetId |= ENUM;
-  else if ( facet == "whiteSpace" )
-    d->mFacetId |= WSP;
-  else if ( facet == "pattern" )
-    d->mFacetId |= PATTERN;
-  else if ( facet == "maxInclusive" )
-    d->mFacetId |= MAXINC;
-  else if ( facet == "maxExclusive" )
-    d->mFacetId |= MAXEX;
-  else if ( facet == "minInclusive" )
-    d->mFacetId |= MININC;
-  else if ( facet == "minExclusive" )
-    d->mFacetId |= MINEX;
-  else if ( facet == "totalDigits" )
-    d->mFacetId |= TOT;
-  else if ( facet == "fractionDigits" )
-    d->mFacetId |= FRAC;
-  else {
-    d->mFacetId = NONE;
-    return false;
+  if ( facet == "length" ) {
+    d->mFacetId |=LENGTH;
+    return LENGTH;
+  } else if ( facet == "minLength" ) {
+    d->mFacetId |=MINLEN;
+    return MINLEN;
+  } else if ( facet == "maxLength" ) {
+    d->mFacetId |=MAXLEN;
+    return MAXLEN;
+  } else if ( facet == "enumeration" ) {
+    d->mFacetId |=ENUM;
+    return ENUM;
+  } else if ( facet == "whiteSpace" ) {
+    d->mFacetId |=WSP;
+    return WSP;
+  } else if ( facet == "pattern" ) {
+    d->mFacetId |=PATTERN;
+    return PATTERN;
+  } else if ( facet == "maxInclusive" ) {
+    d->mFacetId |=MAXINC;
+    return MAXINC;
+  } else if ( facet == "maxExclusive" ) {
+    d->mFacetId |=MAXEX;
+    return MAXEX;
+  } else if ( facet == "minInclusive" ) {
+    d->mFacetId |=MININC;
+    return MININC;
+  } else if ( facet == "minExclusive" ) {
+    d->mFacetId |=MINEX;
+    return MINEX;
+  } else if ( facet == "totalDigits" ) {
+    d->mFacetId |=TOT;
+    return TOT;
+  } else if ( facet == "fractionDigits" ) {
+    d->mFacetId |=FRAC;
+    return FRAC;
   }
 
-  return true;
+  d->mFacetId = NONE;
+  return NONE;
 }
 
-void SimpleType::setFacetValue( const QString &value )
+void SimpleType::setFacetValue( const FacetType type, const QString &value )
 {
   int number = -1;
 
-  if ( d->mFacetId & ENUM ) {
+  if ( type ==  ENUM) {
     d->mEnums.append( value );
-  } else if ( d->mFacetId & PATTERN ) {
+  } else if ( type ==  PATTERN ) {
     d->mFacetValue.pattern = value;
-  } else if ( d->mFacetId & WSP ) {
+  } else if ( type ==  WSP ) {
     if ( value == "preserve" )
       d->mFacetValue.wsp = PRESERVE;
     else if ( value == "collapse" )
@@ -206,25 +218,25 @@ void SimpleType::setFacetValue( const QString &value )
     number = value.toInt();
   }
 
-  if ( d->mFacetId & MAXEX ) {
+  if ( type ==  MAXEX ) {
     d->mFacetValue.valRange.maxex = number;
-  } else if ( d->mFacetId & MAXINC ) {
+  } else if ( type ==  MAXINC ) {
     d->mFacetValue.valRange.maxinc = number;
-  } else if ( d->mFacetId & MININC ) {
+  } else if ( type ==  MININC ) {
     d->mFacetValue.valRange.mininc = number;
-  } else if ( d->mFacetId & MINEX ) {
+  } else if ( type ==  MINEX ) {
     d->mFacetValue.valRange.minex = number;
-  } else if ( d->mFacetId & MAXEX ) {
+  } else if ( type ==  MAXEX ) {
     d->mFacetValue.valRange.maxex = number;
-  } else if ( d->mFacetId & LENGTH ) {
+  } else if ( type ==  LENGTH ) {
     d->mFacetValue.length = number;
-  } else if ( d->mFacetId & MINLEN ) {
+  } else if ( type ==  MINLEN ) {
     d->mFacetValue.lenRange.minlen = number;
-  } else if ( d->mFacetId & MAXLEN ) {
+  } else if ( type ==  MAXLEN ) {
     d->mFacetValue.lenRange.maxlen = number;
-  } else if ( d->mFacetId & TOT ) {
+  } else if ( type ==  TOT ) {
     d->mFacetValue.tot = number;
-  } else if ( d->mFacetId & FRAC ) {
+  } else if ( type ==  FRAC ) {
     d->mFacetValue.frac = number;
   }
 }

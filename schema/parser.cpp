@@ -28,10 +28,11 @@
 #include <QtDebug>
 #include <QtCore/QLatin1String>
 
-#include <common/fileprovider.h>
-#include <common/messagehandler.h>
-#include <common/nsmanager.h>
-#include <common/parsercontext.h>
+#include <fileprovider.h>
+#include <messagehandler.h>
+#include <nsmanager.h>
+#include <parsercontext.h>
+
 #include "parser.h"
 
 static const QString XMLSchemaURI( "http://www.w3.org/2001/XMLSchema" );
@@ -603,13 +604,15 @@ void Parser::parseRestriction( ParserContext*, const QDomElement &element, Simpl
 
   while ( !childElement.isNull() ) {
     QName tagName = childElement.tagName();
-    if ( !st.isValidFacet( tagName.localName() ) ) {
+
+    SimpleType::FacetType type = st.isValidFacet( tagName.localName() );
+    if ( type == SimpleType::FacetType::NONE ) {
       qDebug( "<restriction>: %s is not a valid facet for the simple type", qPrintable( childElement.tagName() ) );
       childElement = childElement.nextSiblingElement();
       continue;
     }
 
-    st.setFacetValue( childElement.attribute( "value" ) );
+    st.setFacetValue( type, childElement.attribute( "value" ) );
     childElement = childElement.nextSiblingElement();
   }
 }

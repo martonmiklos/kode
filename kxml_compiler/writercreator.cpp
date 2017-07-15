@@ -105,22 +105,17 @@ void WriterCreator::createElementWriter(
     if ( element.type() == Schema::Element::Date ) {
       code += "if ( value().isValid() ) {";
       code.indent();
-    } else if ( element.type() != Schema::Element::Int &&
-                element.type() != Schema::Element::Integer &&
-                element.type() != Schema::Element::Decimal &&
-                element.type() != Schema::Element::Boolean ){
+    } else if ( element.isStringBasedType() ){
       code += "if ( !value().isEmpty() ) {";
       code.indent();
     }
     addWriteStartElement( tag, targetNameSpace, code, element.isRootElement() );
     code += createAttributeWriter( element );
 
-    QString data = dataToStringConverter( "value()", element.type() );
+    QString data = dataToStringConverter( "value()", element );
     code += "xml.writeCharacters( " + data + " );";
     code += "xml.writeEndElement();";
-    if ( element.type() != Schema::Element::Int &&
-         element.type() != Schema::Element::Decimal &&
-         element.type() != Schema::Element::Boolean ){
+    if ( element.isStringBasedType() ){
       code += "}";
       code.unindent();
     }
@@ -176,7 +171,7 @@ void WriterCreator::createElementWriter(
       } else {
         Schema::Element e = mDocument.element( r );
         QString accessor = Namer::getAccessor( e ) + "()";
-        QString data = dataToStringConverter( accessor, e.type() );
+        QString data = dataToStringConverter( accessor, e );
         if ( e.text() && !e.hasAttributeRelations() ) {
           if ( e.type() == Schema::Element::String ) {
             code += "if ( !" + data + ".isEmpty() ) {";
@@ -208,29 +203,30 @@ void WriterCreator::createElementWriter(
 
 // FIXME: Collect in class with other type specific functions from parsercreator
 // and creator
-QString WriterCreator::dataToStringConverter( const QString &data,
-  Schema::Node::Type type )
+QString WriterCreator::dataToStringConverter( const QString &data, const Schema::Node &element )
 {
   QString converter;
-  if ( type == Schema::Element::Int ) {
+  switch (element.type()) {
+  case Schema::Element::Int:
     converter = "QString::number( " + data + ", 'f', 0)";
-  } else if ( type == Schema::Element::Decimal) {
-    converter = "QString::number( " + data + ", 'f', 6)";
-  } else if ( type == Schema::Element::Date ) {
+    break;
+  case Schema::Element::Decimal:
+  case Schema::Element::Integer:
+    converter = QString("QString::number( %1, 'f', %2)").arg(data).arg(element.fractionalDigits());
+    break;
+  case Schema::Element::Date:
     // format: [-]CCYY-MM-DD[Z|(+|-)hh:mm]
     // http://books.xmlschemata.org/relaxng/ch19-77041.html
     converter = data + ".toString( \"yyyy-MM-dd\" )";
-  } else if ( type == Schema::Element::DateTime ) {
-    // format: [-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]
-    // http://books.xmlschemata.org/relaxng/ch19-77049.html
-    converter = data + ".toString( \"yyyy-MM-ddthh:mm:ssZ\" )";
-  } else if ( type == Schema::Element::Boolean ) {
+    break;
+  case Schema::Element::Boolean:
     // Legal values for boolean are true, false, 1 (which indicates true), and 0 (which indicates false).
     converter = data + " ? \"1\" : \"0\"";
-  } else {
+    break;
+  default:
     converter = data;
+    break;
   }
-  
   return converter;
 }
 
@@ -244,7 +240,7 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
     QString data = Namer::getAccessor( a ) + "()";
     if ( a.type() != Schema::Node::Enumeration ) {
         code += "    xml.writeAttribute( \"" + a.name() + "\", " +
-          dataToStringConverter( data, a.type() ) + " );";
+          dataToStringConverter( data, a ) + " );";
     } else if ( a.type() == Schema::Node::Enumeration ) {
        code += "    xml.writeAttribute(\"" + a.name() + "\", " +
                a.name() + "EnumToString( " + a.name() + "() ));";

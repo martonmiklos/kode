@@ -127,13 +127,22 @@ class KSCHEMA_EXPORT Node : public Annotatable
 
     static Type typeFromString( QString xsType );
 
-  private:
+    int totalDigits() const;
+    void setTotalDigits(int totalDigits);
+
+    int fractionalDigits() const;
+    void setFractionalDigits(int fractionalDigits);
+
+private:
     Type mType;
     QString mIdentifier;
     QString mName;
     Type mBaseType;
 
     QStringList mEnumerationValues;
+
+    int mTotalDigits;
+    int mFractionalDigits;
 };
 
 class KSCHEMA_EXPORT Attribute : public Node
@@ -188,6 +197,8 @@ class KSCHEMA_EXPORT Element : public Node
 
     bool isRootElement() const;
     void setIsRootElement(bool isRootElement);
+
+    bool isStringBasedType() const;
 
 private:
     bool mText;

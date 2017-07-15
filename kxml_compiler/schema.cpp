@@ -253,7 +253,7 @@ QString Relation::asString( const QString &type ) const
 
 
 Node::Node()
-  : mType( String ), mBaseType( None )
+  : mType( String ), mBaseType( None ), mFractionalDigits(6)
 {
 }
 
@@ -338,6 +338,26 @@ Node::Type Node::typeFromString(QString xsType)
     return Schema::Node::Boolean;
   }
   return Schema::Node::None;
+}
+
+int Node::totalDigits() const
+{
+  return mTotalDigits;
+}
+
+void Node::setTotalDigits(int totalDigits)
+{
+  mTotalDigits = totalDigits;
+}
+
+int Node::fractionalDigits() const
+{
+  return mFractionalDigits;
+}
+
+void Node::setFractionalDigits(int fractionalDigits)
+{
+  mFractionalDigits = fractionalDigits;
 }
 
 
@@ -479,6 +499,14 @@ bool Element::isRootElement() const
 void Element::setIsRootElement(bool IsRootElement)
 {
     mIsRootElement = IsRootElement;
+}
+
+bool Element::isStringBasedType() const
+{
+    return type() != Schema::Element::Int &&
+            type() != Schema::Element::Integer &&
+            type() != Schema::Element::Decimal &&
+            type() != Schema::Element::Boolean;
 }
 
 
