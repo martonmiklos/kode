@@ -126,7 +126,6 @@ QStringList Types::namespaces() const
 ComplexType Types::complexType( const Element &element ) const
 {
   foreach( ComplexType type, d->mComplexTypes ) {
-    qWarning() << type.name();
     if( element.type() == type.name() ) return type;
   }
   return ComplexType();
