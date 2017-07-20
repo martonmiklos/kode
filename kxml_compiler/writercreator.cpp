@@ -224,6 +224,26 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
     // Legal values for boolean are true, false, 1 (which indicates true), and 0 (which indicates false).
     converter = data + " ? \"1\" : \"0\"";
     break;
+  case Schema::Element::Token:
+    /*
+     * The token data type also contains characters, but the XML processor will remove line feeds, carriage returns, tabs, leading and trailing spaces, and multiple spaces.
+     */
+    converter = data;
+    converter = converter.remove("\r");
+    converter = converter.remove("\n");
+    converter = converter.remove("\t");
+    converter = converter.trimmed();
+    converter = converter.replace(QRegularExpression("\s\s+"), QStringLiteral(" "));
+    break;
+  case Schema::Element::NormalizedString:
+    /*
+     * The normalizedString data type also contains characters, but the XML processor will remove line feeds, carriage returns, and tab characters.
+     */
+    converter = data;
+    converter = converter.remove("\r");
+    converter = converter.remove("\n");
+    converter = converter.remove("\t");
+    break;
   default:
     converter = data;
     break;
