@@ -336,6 +336,8 @@ Node::Type Node::typeFromString(QString xsType)
     return Schema::Node::Token;
   } else if ( xsType == "xs:boolean" ) {
     return Schema::Node::Boolean;
+  } else if ( xsType == "xs:byte" ) {
+    return Schema::Node::Byte;
   }
   return Schema::Node::None;
 }
@@ -501,12 +503,14 @@ void Element::setIsRootElement(bool IsRootElement)
     mIsRootElement = IsRootElement;
 }
 
-bool Element::isStringBasedType() const
+bool Element::isNumeric() const
 {
-    return type() != Schema::Element::Int &&
-            type() != Schema::Element::Integer &&
-            type() != Schema::Element::Decimal &&
-            type() != Schema::Element::Boolean;
+    return
+        (type() == Int ||
+        type() == Integer ||
+        type() == Decimal ||
+        type() == Byte ||
+        type() == Boolean);
 }
 
 

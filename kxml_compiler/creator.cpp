@@ -289,6 +289,8 @@ ClassDescription Creator::createClassDescription(
         description.addProperty( "double", targetClassName );
       } else if ( targetElement.type() == Schema::Element::Date ) {
         description.addProperty( "QDate", targetClassName );
+      } else if ( targetElement.type() == Schema::Element::Byte ) {
+        description.addProperty( "quint8", targetClassName );
       } else {
         description.addProperty( "QString", targetClassName );
       }
@@ -396,6 +398,7 @@ void Creator::createClass(const Schema::Element &element )
       // FIXME/TODO add initializer rather
       if ( element.type() == Schema::Node::Decimal ||
            element.type() == Schema::Node::Int ||
+           element.type() == Schema::Node::Byte ||
            element.type() == Schema::Node::Integer ) {
         defaultCode += "mValue = 0;";
       } else if ( element.type() == Schema::Node::Enumeration ) {
@@ -686,6 +689,8 @@ QString Creator::typeName( Schema::Node::Type type )
     return "qlonglong";
   } else if ( type == Schema::Element::Decimal ) {
     return "double";
+  } else if ( type == Schema::Element::Byte ) {
+    return "quint8";
   } else if ( type == Schema::Element::String ||
               type == Schema::Element::NormalizedString ||
               type == Schema::Element::Token ) {

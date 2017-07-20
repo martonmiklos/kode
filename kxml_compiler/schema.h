@@ -97,11 +97,12 @@ class KSCHEMA_EXPORT Node : public Annotatable
                 Int = 4, // xs:int -> signed 32-bit integer
                 Integer = 5, // xs:integer -> integer unbounded value
                 Decimal = 6,
-                Date = 7,
-                DateTime = 8,
-                Boolean = 9,
-                Enumeration = 10,
-                ComplexType = 11,
+                Byte = 7, // xs:byte -> quint8
+                Date = 8,
+                DateTime = 9,
+                Boolean = 10,
+                Enumeration = 11,
+                ComplexType = 12
                };
     Node();
     virtual ~Node();
@@ -198,7 +199,7 @@ class KSCHEMA_EXPORT Element : public Node
     bool isRootElement() const;
     void setIsRootElement(bool isRootElement);
 
-    bool isStringBasedType() const;
+    bool isNumeric() const;
 
 private:
     bool mText;

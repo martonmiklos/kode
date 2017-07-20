@@ -105,7 +105,7 @@ void WriterCreator::createElementWriter(
     if ( element.type() == Schema::Element::Date ) {
       code += "if ( value().isValid() ) {";
       code.indent();
-    } else if ( element.isStringBasedType() ){
+    } else if ( !element.isNumeric() ){
       code += "if ( !value().isEmpty() ) {";
       code.indent();
     }
@@ -115,7 +115,7 @@ void WriterCreator::createElementWriter(
     QString data = dataToStringConverter( "value()", element );
     code += "xml.writeCharacters( " + data + " );";
     code += "xml.writeEndElement();";
-    if ( element.isStringBasedType() ){
+    if ( !element.isNumeric() ){
       code += "}";
       code.unindent();
     }
@@ -208,6 +208,7 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
   QString converter;
   switch (element.type()) {
   case Schema::Element::Int:
+  case Schema::Element::Byte:
     converter = "QString::number( " + data + ", 'f', 0)";
     break;
   case Schema::Element::Decimal:
@@ -227,6 +228,7 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
     converter = data;
     break;
   }
+  
   return converter;
 }
 

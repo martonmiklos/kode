@@ -334,6 +334,8 @@ QString ParserCreatorDom::stringToDataConverter( const QString &data,
     converter = data + ".toInt()";
   } else if ( type == Schema::Element::Integer ) {
     converter = data + ".toLongLong()";
+  } else if ( type == Schema::Element::Byte ) {
+    converter = "(quint8)" + data + ".toInt()"; // TODO check data range?
   } else if ( type == Schema::Element::Decimal ) {
     converter = data + ".toDouble()";
   } else if ( type == Schema::Element::Date ) {
