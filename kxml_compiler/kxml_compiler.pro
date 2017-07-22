@@ -30,10 +30,14 @@ HEADERS += \
     creator.h \
     classdescription.h
 
+include(../schema/schema.pri)
+include(../common/common.pri)
+include(../libkode/libkode.pri)
+
 INCLUDEPATH += ../
 INCLUDEPATH += ../common
 INCLUDEPATH += ../schema
 INCLUDEPATH += ../libkode
 
-LIBS += -lkode
-LIBS += -L../libkode/bin
+#LIBS += -lkode
+#LIBS += -L../libkode/bin
