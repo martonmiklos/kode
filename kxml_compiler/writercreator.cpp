@@ -23,6 +23,7 @@
 #include "style.h"
 
 #include <QDebug>
+#include <QRegularExpression>
 
 WriterCreator::WriterCreator( KODE::File &file, Schema::Document &document,
   const QString &dtd )
@@ -99,9 +100,20 @@ void WriterCreator::createElementWriter(
   code += "return;";
   code.unindent();
 
-  if ( element.type() == Schema::Element::None ) {
+  switch (element.type()) {
+  case Schema::Element::None:
     code += "xml.writeEmptyElement( \"" + tag + "\" );";
-  } else if (element.type() > Schema::Element::None && element.type() < Schema::Element::Enumeration) {
+    break;
+  case Schema::Element::String:
+  case Schema::Element::NormalizedString:
+  case Schema::Element::Token:
+  case Schema::Element::Int:
+  case Schema::Element::Integer:
+  case Schema::Element::Decimal:
+  case Schema::Element::Byte:
+  case Schema::Element::Date:
+  case Schema::Element::DateTime:
+  case Schema::Element::Boolean:
     if ( element.type() == Schema::Element::Date ) {
       code += "if ( value().isValid() ) {";
       code.indent();
@@ -112,14 +124,14 @@ void WriterCreator::createElementWriter(
     addWriteStartElement( tag, targetNameSpace, code, element.isRootElement() );
     code += createAttributeWriter( element );
 
-    QString data = dataToStringConverter( "value()", element );
-    code += "xml.writeCharacters( " + data + " );";
+    code += "xml.writeCharacters( " + dataToStringConverter( "value()", element ) + " );";
     code += "xml.writeEndElement();";
     if ( !element.isNumeric() ){
       code += "}";
       code.unindent();
     }
-  } else if ( element.type() == Schema::Element::Enumeration ) {
+    break;
+  case Schema::Element::Enumeration:
     addWriteStartElement( tag, targetNameSpace, code, element.isRootElement() );
 
     code += createAttributeWriter( element );
@@ -127,7 +139,8 @@ void WriterCreator::createElementWriter(
             KODE::Style::lowerFirst( Namer::getClassName( element.name()))  +
             "_EnumToString( value() ) );";
     code += "xml.writeEndElement();";
-  } else {
+    break;
+  case Schema::Element::ComplexType:
     bool pureList = true;
     if ( !element.attributeRelations().isEmpty() ) {
       pureList = false;
@@ -194,6 +207,7 @@ void WriterCreator::createElementWriter(
       code.unindent();
       code += "}";
     }
+    break;
   }
 
   writer.setBody( code );
@@ -233,7 +247,7 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
     converter = converter.remove("\n");
     converter = converter.remove("\t");
     converter = converter.trimmed();
-    converter = converter.replace(QRegularExpression("\s\s+"), QStringLiteral(" "));
+    converter = converter.replace(QRegularExpression("\\s\\s+"), QStringLiteral(" "));
     break;
   case Schema::Element::NormalizedString:
     /*
