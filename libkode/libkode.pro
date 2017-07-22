@@ -33,35 +33,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += \
-    variable.cpp \
-    typedef.cpp \
-    style.cpp \
-    statemachine.cpp \
-    printer.cpp \
-    membervariable.cpp \
-    license.cpp \
-    function.cpp \
-    file.cpp \
-    enum.cpp \
-    code.cpp \
-    class.cpp \
-    automakefile.cpp
-
-HEADERS += \
-    variable.h \
-    typedef.h \
-    style.h \
-    statemachine.h \
-    printer.h \
-    membervariable.h \
-    license.h \
-    function.h \
-    file.h \
-    enum.h \
-    code.h \
-    class.h
-
+include(libkode.pri)
 include(../common/common.pri)
 include(../schema/schema.pri)
 
