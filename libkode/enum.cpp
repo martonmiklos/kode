@@ -81,46 +81,56 @@ QString Enum::name() const
 
 /**
  * @brief Enum::declaration
- * @return Returns a QString contatining the enum declaration in the following format:
- * enum Foo { Foo_a, Foo_b, Foo_Invalid };
+ * @return Prints the enum declaration in the following format:
+ * enum Foo {
+ *   Foo_a,
+ *   Foo_b,
+ *   Foo_Invalid
+ * };
  *
  * If the enum name is suffixed with Enum (FooEnum) then the Enum suffix will be removed
  * from the enum item's names:
- * enum FooEnum { Foo_a, Foo_b, Foo_Invalid };
+ * enum FooEnum {
+ *   Foo_a,
+ *   Foo_b,
+ *   Foo_Invalid
+ * };
  *
  * The last item (Foo_Invalid) is automatically generated to each elements, and the
  * enum parsing methods will return this value if the XML contains a non-enum value.
  */
-QString Enum::declaration() const
+void Enum::declaration(Code *code) const
 {
-  QString retval( "enum " + d->mName + " {" );
   uint value = 0;
   QStringList::ConstIterator it;
   QString baseName = name();
+
+  code->addLine("enum " + d->mName + " {");
+  code->indent();
+
   if ( d->mName.right(4) == "Enum" && d->mName.length() > 4 ) {
     baseName = d->mName.left(d->mName.length() - 4);
   }
 
-  for ( it = d->mEnums.constBegin(); it != d->mEnums.constEnd(); ++it, ++value ) {
+  for ( it = d->mEnums.constBegin(); it != d->mEnums.constEnd(); ++value ) {
+    QString retval;
     if ( d->mCombinable ) {
-      if ( it == d->mEnums.constBegin() )
-        retval += QString( " %1_%2 = %3" ).arg( baseName ).arg( Style::sanitize( *it ) ).arg( 1 << value );
-      else
-        retval += QString( ", %1_%2 = %3" ).arg( baseName ).arg( Style::sanitize( *it ) ).arg( 1 << value );
+      retval += QString( "%1_%2 = %3" ).arg( baseName ).arg( Style::sanitize( *it ) ).arg( 1 << value );
     } else {
-      if ( it == d->mEnums.constBegin() )
-        retval += ' ' + baseName + '_' + Style::sanitize( *it );
-      else
-        retval += ", " + baseName + '_' + Style::sanitize( *it );
+      retval += baseName + '_' + Style::sanitize( *it );
     }
+
+    ++it;
+    if (it != d->mEnums.constEnd()) {
+      retval += ",";
+    }
+    code->addLine(retval);
   }
 
-  if (value != 0)
-    retval += ", "; // Do not generate broken code on empty enums
-  retval += baseName + "_Invalid";
-  retval += " };";
+  code->addLine(baseName + "_Invalid");
 
-  return retval;
+  code->unindent();
+  code->addLine("};");
 }
 
 KODE::Function Enum::parserMethod() const

@@ -70,9 +70,9 @@ class KODE_EXPORT Enum
     QString name() const;
     
     /**
-     * Returns the textual presentation of the enum.
+     * Prints the textual presentation of the enum.
      */
-    QString declaration() const;
+    void declaration(Code *code) const;
 
     KODE::Function parserMethod() const;
     KODE::Function writerMethod() const;

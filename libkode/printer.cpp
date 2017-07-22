@@ -193,7 +193,7 @@ QString Printer::Private::classHeader( const Class &classObject, bool publicMemb
 
     Enum::List::ConstIterator it;
     for ( it = enums.constBegin(); it != enums.constEnd(); ++it )
-      code += (*it).declaration();
+      (*it).declaration(&code);
 
     if ( mLabelsDefineIndent )
       code.unindent();
@@ -733,7 +733,7 @@ void Printer::printHeader( const File &file )
   Enum::List enums = file.fileEnums();
   Enum::List::ConstIterator enumIt;
   for ( enumIt = enums.constBegin(); enumIt != enums.constEnd(); ++enumIt ) {
-    out += (*enumIt).declaration();
+    (*enumIt).declaration(&out);
     out.newLine();
   }
 

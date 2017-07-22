@@ -99,6 +99,7 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
     Schema::Element e;
     e.setIdentifier( element.name() );
     e.setName( element.name() );
+
     XSD::ComplexType complexType = types.complexType( element );
 
     if ( complexType.contentModel() == XSD::XSDType::MIXED ) {
@@ -124,6 +125,7 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
         setType( e, simpleType );
       }
     }
+
     foreach( XSD::Element subElement, complexType.elements() ) {
       if ( mVerbose ) {
         qDebug() << "  Element: " << subElement.name();
