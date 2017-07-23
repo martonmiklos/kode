@@ -127,8 +127,8 @@ void WriterCreator::createElementWriter(
     code += "xml.writeCharacters( " + dataToStringConverter( "value()", element ) + " );";
     code += "xml.writeEndElement();";
     if ( !element.isNumeric() ){
-      code += "}";
       code.unindent();
+      code += "}";
     }
     break;
   case Schema::Element::Enumeration:
