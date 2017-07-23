@@ -62,7 +62,7 @@ Schema::Document ParserXsd::parse( const QString &data )
   }
 }
 
-Schema::Document ParserXsd::parse( QFile &file )
+Schema::Document ParserXsd::parse( QFile &file, const QString &documentationLanguage )
 {
   if ( mVerbose ) {
     qDebug() << "----ParserXsd::parse() file";
@@ -75,6 +75,9 @@ Schema::Document ParserXsd::parse( QFile &file )
   context.setMessageHandler( &messageHandler );
 
   XSD::Parser parser;
+  if (!documentationLanguage.isEmpty())
+    parser.setDocumentationLanguage(documentationLanguage);
+
   if ( !parser.parseFile( &context, file ) ) {
     qDebug() << "Error parsing file " << file.fileName();
 

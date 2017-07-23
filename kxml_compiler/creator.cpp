@@ -175,8 +175,8 @@ void Creator::createProperty( KODE::Class &c,
 void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
 {
   if ( !c.hasEnum( "Flags" ) ) {
-    QStringList enumValues;
-    enumValues << "None" << "AutoCreate";
+    QList<XSD::SimpleType::EnumItem> enumValues;
+    enumValues << XSD::SimpleType::EnumItem("None") << XSD::SimpleType::EnumItem("AutoCreate");
     KODE::Enum flags( "Flags", enumValues );
     c.addEnum( flags );
   }
@@ -501,7 +501,7 @@ void Creator::createClass(const Schema::Element &element )
   }
 
   if ( element.type() == Schema::Node::Enumeration ) {
-    QStringList enumItems = element.enumerationValues();
+    QList<XSD::SimpleType::EnumItem> enumItems = element.enumerationValues();
     KODE::Enum selfEnum( typeName( element ), enumItems, false);
     c.addEnum(selfEnum);
   }

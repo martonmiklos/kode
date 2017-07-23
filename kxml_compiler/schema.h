@@ -27,6 +27,8 @@
 #include <QDomElement>
 #include <kode_export.h>
 
+#include "simpletype.h"
+
 namespace Schema {
 
 class KSCHEMA_EXPORT Relation
@@ -123,8 +125,8 @@ class KSCHEMA_EXPORT Node : public Annotatable
 
     bool isValid() const;
 
-    void setEnumerationValues( const QStringList & );
-    QStringList enumerationValues() const;
+    void setEnumerationValues(const QList<XSD::SimpleType::EnumItem> & );
+    QList<XSD::SimpleType::EnumItem> enumerationValues() const;
 
     static Type typeFromString( QString xsType );
 
@@ -140,7 +142,7 @@ private:
     QString mName;
     Type mBaseType;
 
-    QStringList mEnumerationValues;
+    QList<XSD::SimpleType::EnumItem> mEnumerationValues;
 
     int mTotalDigits;
     int mFractionalDigits;

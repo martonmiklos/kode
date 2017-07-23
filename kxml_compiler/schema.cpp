@@ -306,12 +306,12 @@ bool Node::isValid() const
   return !mIdentifier.isEmpty() && !mName.isEmpty();
 }
 
-void Node::setEnumerationValues( const QStringList &v )
+void Node::setEnumerationValues(const QList<XSD::SimpleType::EnumItem> &v )
 {
   mEnumerationValues = v;
 }
 
-QStringList Node::enumerationValues() const
+QList<XSD::SimpleType::EnumItem> Node::enumerationValues() const
 {
   return mEnumerationValues;
 }

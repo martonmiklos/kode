@@ -39,7 +39,7 @@ public:
     bool mRestriction;
     int mFacetId;
     bool mAnonymous;
-    QStringList mEnums;
+    QList<SimpleType::EnumItem> mEnums;
     SubType mSubType;
 
     QName mListTypeName;
@@ -195,12 +195,13 @@ SimpleType::FacetType SimpleType::isValidFacet( const QString &facet )
   return NONE;
 }
 
-void SimpleType::setFacetValue( const FacetType type, const QString &value )
+void SimpleType::setFacetValue( const FacetType type, const QString &value, const QString &docs )
 {
   int number = -1;
 
   if ( type ==  ENUM) {
-    d->mEnums.append( value );
+    SimpleType::EnumItem item(value, docs);
+    d->mEnums.append( item );
   } else if ( type ==  PATTERN ) {
     d->mFacetValue.pattern = value;
   } else if ( type ==  WSP ) {
@@ -261,7 +262,7 @@ int SimpleType::facetMaximumLength() const
   return d->mFacetValue.lenRange.maxlen;
 }
 
-QStringList SimpleType::facetEnums() const
+QList<SimpleType::EnumItem> SimpleType::facetEnums() const
 {
   return d->mEnums;
 }

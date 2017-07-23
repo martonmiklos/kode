@@ -37,6 +37,13 @@ class SCHEMA_EXPORT SimpleType : public XSDType
   public:
     typedef QList<SimpleType> List;
 
+    class EnumItem {
+    public:
+      EnumItem(const QString &val, const QString &docs = QStringLiteral("")) : value(val), documentation(docs) {}
+      QString value;
+      QString documentation;
+    };
+
     enum FacetType
     {
       NONE = 0,
@@ -91,14 +98,14 @@ class SCHEMA_EXPORT SimpleType : public XSDType
     bool isAnonymous() const;
 
     FacetType isValidFacet( const QString &facet );
-    void setFacetValue(const FacetType type, const QString &value );
+    void setFacetValue(const FacetType type, const QString &value , const QString &docs = QStringLiteral(""));
 
     int facetType() const;
 
     int facetLength() const;
     int facetMinimumLength() const;
     int facetMaximumLength() const;
-    QStringList facetEnums() const;
+    QList<EnumItem> facetEnums() const;
     WhiteSpaceType facetWhiteSpace() const;
     int facetMinimumInclusive() const;
     int facetMaximumInclusive() const;

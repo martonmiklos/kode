@@ -105,7 +105,7 @@ void ClassDescription::addEnum(const KODE::Enum &classEnum)
   m_enums.append( classEnum );
 }
 
-void ClassDescription::addEnum(const QString &name, const QStringList &enumItems)
+void ClassDescription::addEnum(const QString &name, const QList<XSD::SimpleType::EnumItem> &enumItems)
 {
   m_enums.append( KODE::Enum(name, enumItems) );
 }

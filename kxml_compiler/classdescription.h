@@ -70,7 +70,7 @@ class ClassDescription
     bool hasProperty( const QString &name ) const;
 
     void addEnum(const KODE::Enum & classEnum);
-    void addEnum( const QString &name, const QStringList &enumItems );
+    void addEnum(const QString &name, const QList<XSD::SimpleType::EnumItem> &enumItems );
 
     KODE::Enum::List enums() const;
 

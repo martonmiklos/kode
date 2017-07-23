@@ -36,7 +36,7 @@ class KSCHEMA_EXPORT ParserXsd
   public:
     ParserXsd();
 
-    Schema::Document parse( QFile & );
+    Schema::Document parse(QFile & , const QString &documentationLanguage = QStringLiteral(""));
     Schema::Document parse( const QString & );
     void setVerbose( bool verbose );
 

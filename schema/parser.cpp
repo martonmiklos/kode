@@ -55,6 +55,7 @@ public:
     QStringList mImportedSchemas;
     QStringList mIncludedSchemas;
     QStringList mNamespaces;
+    QString mDocLang;
 };
 
 Parser::Parser( const QString &nameSpace )
@@ -253,7 +254,7 @@ void Parser::parseInclude( ParserContext *context, const QDomElement &element )
 }
 
 Annotation::List Parser::parseAnnotation( ParserContext *,
-  const QDomElement &element )
+  const QDomElement &element, const QString &langFilter )
 {
   Annotation::List result;
 
@@ -261,6 +262,9 @@ Annotation::List Parser::parseAnnotation( ParserContext *,
   for( e = element.firstChildElement(); !e.isNull();
        e = e.nextSiblingElement() ) {
     QName name = e.tagName();
+    if (!langFilter.isEmpty() && e.hasAttribute("xml:lang") && e.attribute("xml:lang") != langFilter)
+      continue;
+
     if ( name.localName() == "documentation" ) {
       result.append( Annotation( e ) );
     } else if ( name.localName() == "appinfo" ) {
@@ -604,15 +608,31 @@ void Parser::parseRestriction( ParserContext*, const QDomElement &element, Simpl
 
   while ( !childElement.isNull() ) {
     QName tagName = childElement.tagName();
-
+    QString docs = QStringLiteral("");
     SimpleType::FacetType type = st.isValidFacet( tagName.localName() );
     if ( type == SimpleType::FacetType::NONE ) {
       qDebug( "<restriction>: %s is not a valid facet for the simple type", qPrintable( childElement.tagName() ) );
       childElement = childElement.nextSiblingElement();
       continue;
+    } else if ( type == SimpleType::FacetType::ENUM) {
+      // lookup the documentation annotation for the enumeration
+      QDomElement annotation = childElement.firstChildElement("xs:annotation");
+      if (!annotation.isNull()) {
+        QDomElement docElement = annotation.firstChildElement("xs:documentation");
+        while (!docElement.isNull()) {
+          if (d->mDocLang.isEmpty()) {
+            docs.append(docElement.text());
+          } else {
+            if (docElement.hasAttribute("xml:lang") && d->mDocLang == docElement.attribute("xml:lang")) {
+              docs.append(docElement.text());
+            }
+          }
+          docElement = docElement.nextSiblingElement("xs:documentation");
+        }
+      }
     }
 
-    st.setFacetValue( type, childElement.attribute( "value" ) );
+    st.setFacetValue( type, childElement.attribute( "value" ), docs );
     childElement = childElement.nextSiblingElement();
   }
 }
@@ -922,6 +942,16 @@ void Parser::includeSchema( ParserContext *context, const QString &location )
 QString Parser::schemaUri()
 {
   return XMLSchemaURI;
+}
+
+QString Parser::documentationLanguage()
+{
+  return d->mDocLang;
+}
+
+void Parser::setDocumentationLanguage(const QString &docLang)
+{
+  d->mDocLang = docLang;
 }
 
 QStringList Parser::joinNamespaces( const QStringList &list, const QStringList &namespaces )

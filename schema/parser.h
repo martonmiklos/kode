@@ -62,7 +62,7 @@ class SCHEMA_EXPORT Parser
     bool parseFile( ParserContext *context, QFile &file );
     bool parseString( ParserContext *context, const QString &data );
 
-    bool parseSchemaTag( ParserContext *context, const QDomElement &element );
+    bool parseSchemaTag(ParserContext *context, const QDomElement &element );
 
     QString targetNamespace() const;
 
@@ -70,6 +70,9 @@ class SCHEMA_EXPORT Parser
       Returns the default schema URI.
      */
     static QString schemaUri();
+
+    QString documentationLanguage();
+    void setDocumentationLanguage(const QString &docLang);
 
   protected:
     bool parse( ParserContext *context, QXmlInputSource *source );
@@ -88,7 +91,7 @@ class SCHEMA_EXPORT Parser
     void addGlobalAttribute( const Attribute & );
     AttributeGroup parseAttributeGroup( ParserContext *context, const QDomElement& );
 
-    Annotation::List parseAnnotation( ParserContext *context, const QDomElement& );
+    Annotation::List parseAnnotation(ParserContext *context, const QDomElement& , const QString &docLang = QStringLiteral(""));
     ComplexType parseComplexType( ParserContext *context, const QDomElement& );
 
     void all( ParserContext *context, const QDomElement&, ComplexType& );

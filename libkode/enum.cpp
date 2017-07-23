@@ -25,6 +25,8 @@
 #include "code.h"
 #include "style.h"
 
+#include "simpletype.h"
+
 using namespace KODE;
 
 class Enum::Private
@@ -36,7 +38,7 @@ class Enum::Private
     }
 
     QString mName;
-    QStringList mEnums;
+    QList<XSD::SimpleType::EnumItem> mEnumItems;
     bool mCombinable;
 };
 
@@ -51,11 +53,11 @@ Enum::Enum( const Enum &other )
   *d = *other.d;
 }
 
-Enum::Enum( const QString &name, const QStringList &enums, bool combinable )
+Enum::Enum(const QString &name, const QList<XSD::SimpleType::EnumItem> &enums, bool combinable )
   : d( new Private )
 {
   d->mName = name;
-  d->mEnums = enums;
+  d->mEnumItems = enums;
   d->mCombinable = combinable;
 }
 
@@ -102,7 +104,7 @@ QString Enum::name() const
 void Enum::declaration(Code *code) const
 {
   uint value = 0;
-  QStringList::ConstIterator it;
+  QList<XSD::SimpleType::EnumItem>::ConstIterator it;
   QString baseName = name();
 
   code->addLine("enum " + d->mName + " {");
@@ -112,17 +114,16 @@ void Enum::declaration(Code *code) const
     baseName = d->mName.left(d->mName.length() - 4);
   }
 
-  for ( it = d->mEnums.constBegin(); it != d->mEnums.constEnd(); ++value ) {
+  for ( it = d->mEnumItems.constBegin(); it != d->mEnumItems.constEnd(); ++value, ++it ) {
     QString retval;
     if ( d->mCombinable ) {
-      retval += QString( "%1_%2 = %3" ).arg( baseName ).arg( Style::sanitize( *it ) ).arg( 1 << value );
+      retval += QString( "%1_%2 = %3" ).arg( baseName ).arg( Style::sanitize( (*it).value ) ).arg( 1 << value );
     } else {
-      retval += baseName + '_' + Style::sanitize( *it );
+      retval += baseName + '_' + Style::sanitize( (*it).value );
     }
-
-    ++it;
-    if (it != d->mEnums.constEnd()) {
-      retval += ",";
+    retval += ",";
+    if (!(*it).documentation.isEmpty()) {
+      retval.append(" // " + (*it).documentation);
     }
     code->addLine(retval);
   }
@@ -150,19 +151,19 @@ KODE::Function Enum::parserMethod() const
   code += "if (ok) *ok = true;";
   code.newLine();
   bool first = true;
-  foreach (QString enumItem, d->mEnums ) {
+  foreach (XSD::SimpleType::EnumItem enumItem, d->mEnumItems ) {
     if ( first ) {
-      code += "if ( v == \"" + enumItem + "\" ) {";
+      code += "if ( v == \"" + enumItem.value + "\" ) {";
       first = false;
     } else {
-      code += "} else if ( v == \"" + enumItem + "\" ) {";
+      code += "} else if ( v == \"" + enumItem.value + "\" ) {";
     }
     code.indent();
-    code += "return " + baseName + '_' + Style::sanitize(enumItem) + ";";
+    code += "return " + baseName + '_' + Style::sanitize(enumItem.value) + ";";
     code.unindent();
   }
 
-  if ( d->mEnums.count() != 0) { // do not generate error on empty enums
+  if ( d->mEnumItems.count() != 0) { // do not generate error on empty enums
     code += "} else {";
     code.indent();
     code += "if (ok) *ok = false;";
@@ -192,8 +193,8 @@ KODE::Function Enum::writerMethod() const
   KODE::Code code;
   code += "switch( v ) {";
   code.indent();
-  foreach (QString enumItem, d->mEnums ) {
-    code += QString("case %1: return \"%2\";").arg(baseName + '_' + Style::sanitize(enumItem)).arg(enumItem);
+  foreach (XSD::SimpleType::EnumItem enumItem, d->mEnumItems ) {
+    code += QString("case %1: return \"%2\";").arg(baseName + '_' + Style::sanitize(enumItem.value)).arg(enumItem.value);
   }
   code += "case " + baseName + "_Invalid:";
   code += "default:";
