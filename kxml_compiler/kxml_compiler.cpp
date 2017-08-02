@@ -147,7 +147,12 @@ int main( int argc, char **argv )
   cmdLine.addOption(docLangOption);
 
   if (!cmdLine.parse(QCoreApplication::arguments())) {
-      return -1;
+    return -1;
+  }
+
+  if (cmdLine.positionalArguments().count() < 1) {
+    qDebug() << "No filename argument passed";
+    return -1;
   }
 
   QString schemaFilename = cmdLine.positionalArguments().at(0);
