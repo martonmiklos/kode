@@ -72,20 +72,21 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
 
 //  qDebug() << "PARSE ELEMENT" << elementName;
 
+
   element.setIdentifier( elementName );
   element.setName( elementName );
 
   QXmlStreamAttributes attributes = xml.attributes();
 
   foreach( QXmlStreamAttribute attribute, attributes ) {
-//          qDebug() << "  ATTRIBUTE" << attribute.name();
+    //qDebug() << "  ATTRIBUTE" << attribute.name();
     Schema::Attribute a;
     a.setType( detectType( attribute.value().toString() ) );
     a.setIdentifier( attribute.name().toString() );
     a.setName( attribute.name().toString() );
 
     Schema::Relation relation( a.identifier() );
-//          qDebug() << "  ADD" << a.identifier() << element.identifier();
+    //qDebug() << "  ADD" << a.identifier() << element.identifier();
     element.addAttributeRelation( relation );
 
     if ( !mDocument.hasAttribute( a ) ) {
@@ -116,6 +117,9 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
 
         if ( !mDocument.hasElement( childElement ) ) {
           mDocument.addElement( childElement );
+        } else {
+          // if the element had been already added
+          mDocument.mergeElement( childElement );
         }
       }
     } else if ( xml.isEndElement() && xml.name() == elementName ) {
@@ -133,7 +137,6 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
     }
 
   }
-
   return element;
 }
 

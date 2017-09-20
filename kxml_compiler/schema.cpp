@@ -47,6 +47,31 @@ void Document::addElement( const Element &e )
   mElements.append( e );
 }
 
+void Document::mergeElement(const Element &newElement)
+{
+  QList<Element>::iterator i;
+  for (i = mElements.begin(); i != mElements.end(); ++i) {
+    if ( (*i).identifier() == newElement.identifier() ) {
+      if (newElement.type() == Element::ComplexType) {
+        (*i).setType(Element::ComplexType);
+      }
+
+      foreach (Relation relation, newElement.elementRelations()) {
+        if (!(*i).hasElementRelation(relation.target())) {
+          (*i).addElementRelation(relation);
+        }
+      }
+
+      foreach (Relation relation, newElement.attributeRelations()) {
+        if (!(*i).hasAttributeRelation(relation.target())) {
+          (*i).addAttributeRelation(relation);
+        }
+      }
+      return;
+    }
+  }
+}
+
 Element::List Document::elements() const
 {
   return mElements;

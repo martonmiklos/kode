@@ -147,6 +147,7 @@ int main( int argc, char **argv )
   cmdLine.addOption(docLangOption);
 
   if (!cmdLine.parse(QCoreApplication::arguments())) {
+    qDebug() << cmdLine.errorText();
     return -1;
   }
 

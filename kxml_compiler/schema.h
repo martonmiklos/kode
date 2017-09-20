@@ -222,6 +222,8 @@ class KSCHEMA_EXPORT Document : public Annotatable
     Element startElement() const;
 
     void addElement( const Element & );
+
+    void mergeElement(const Element &newElement);
     Element::List elements() const;
     bool hasElement( const Element & );
     Element element( const QString &identifier ) const;
