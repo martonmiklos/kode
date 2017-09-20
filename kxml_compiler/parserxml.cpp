@@ -96,7 +96,6 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
       
   while ( !xml.atEnd() ) {
     xml.readNext();
-
     if ( xml.isStartElement() ) {
 //      qDebug() << "  ELEMENT" << element.identifier();
 //      qDebug() << "  START ELEMENT" << xml.name();
@@ -118,7 +117,9 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
         if ( !mDocument.hasElement( childElement ) ) {
           mDocument.addElement( childElement );
         } else {
-          // if the element had been already added
+          // if the same element had been already added
+          // try to merge, because it might be possible to
+          // parse an XML where first parsed element is empty
           mDocument.mergeElement( childElement );
         }
       }
@@ -131,6 +132,8 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
         QString text = xml.text().toString();
 
         element.setType( detectType( text ) );
+      } else if (xml.isWhitespace()) {
+        element.setType( Schema::Element::String );
       } else {
         element.setType( Schema::Element::ComplexType );
       }
