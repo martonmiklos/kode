@@ -551,6 +551,11 @@ void Printer::setOutputDirectory( const QString &outputDirectory )
   d->mOutputDirectory = outputDirectory;
 }
 
+QString Printer::outputDirectory() const
+{
+  return d->mOutputDirectory;
+}
+
 void Printer::setSourceFile( const QString &sourceFile )
 {
   d->mSourceFile = sourceFile;

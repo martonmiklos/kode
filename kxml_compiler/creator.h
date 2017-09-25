@@ -151,6 +151,7 @@ protected:
     void createConstructorOptionalMemberInitializator( const ClassDescription & description, KODE::Code & code );
     void addCRUDConstructorCode( const ClassDescription &description, KODE::Code &code);
     void createCRUDIsValid(KODE::Class &c, ClassDescription &description);
+    void swapTmpFile(KODE::Printer &printer, const QString &targetFile);
 };
 
 class ParserCreator

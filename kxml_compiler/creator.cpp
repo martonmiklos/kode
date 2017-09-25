@@ -20,9 +20,8 @@
 */
 
 #include "creator.h"
-
+#include "filecompare.h"
 #include "namer.h"
-
 #include "parsercreatordom.h"
 #include "writercreator.h"
 
@@ -584,6 +583,27 @@ void Creator::createFileParser( const Schema::Element &element )
   delete parserCreator;
 }
 
+void Creator::swapTmpFile(KODE::Printer &printer, const QString & targetFileName)
+{
+  QFile targetFile(printer.outputDirectory() + targetFileName);
+  QFile tempFile(printer.outputDirectory() + targetFileName + ".tmp");
+  if (!FileCompare::filesIdentical(targetFile.fileName(), tempFile.fileName())) {
+    if (targetFile.exists() && !targetFile.remove()) {
+        qCritical() << QObject::tr("Unable to remove the %1 file").arg(targetFile.fileName());
+    } else {
+        if (!tempFile.rename(targetFile.fileName())) {
+            qCritical() << QObject::tr("Unable to rename the %1 file to %2")
+                          .arg(tempFile.fileName(), targetFile.fileName());
+        }
+    }
+  } else {
+    qDebug() << "No changes to the " << targetFileName << " file, skipping overwrite";
+    if (!tempFile.remove()) {
+      qDebug() << "Unable to remove the " << tempFile.fileName() << " temporary file";
+    }
+  }
+}
+
 void Creator::printFiles( KODE::Printer &printer )
 {
   if ( externalParser() ) {
@@ -606,16 +626,21 @@ void Creator::printFiles( KODE::Printer &printer )
     printer.printImplementation( parserFile );
   }
 
+  QString targetHeader = file().filenameHeader();
+  file().setHeaderFilename(file().filenameHeader() + ".tmp");
   if ( mVerbose ) {
     qDebug() <<"Print header" << file().filenameHeader();
   }
   printer.printHeader( file() );
+  swapTmpFile(printer, targetHeader);
 
+  QString targetImplementation = file().filenameImplementation();
+  file().setImplementationFilename(file().filenameImplementation() + ".tmp");
   if ( mVerbose ) {
     qDebug() <<"Print implementation" << file().filenameImplementation();
   }
   printer.printImplementation( file() );
-
+  swapTmpFile(printer, targetImplementation);
 }
 
 bool Creator::externalParser() const

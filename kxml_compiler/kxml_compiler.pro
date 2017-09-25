@@ -18,7 +18,8 @@ SOURCES += \
     parserxsd.cpp \
     schema.cpp \
     writercreator.cpp \
-    restrictedkeywords.cpp
+    restrictedkeywords.cpp \
+    filecompare.cpp
 
 HEADERS += \
     writercreator.h \
@@ -29,7 +30,8 @@ HEADERS += \
     parsercreatordom.h \
     namer.h \
     creator.h \
-    classdescription.h
+    classdescription.h \
+    filecompare.h
 
 include(../schema/schema.pri)
 include(../common/common.pri)

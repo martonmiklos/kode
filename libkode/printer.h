@@ -81,6 +81,9 @@ class KODE_EXPORT Printer
      */
     void setOutputDirectory( const QString &outputDirectory );
 
+
+    QString outputDirectory() const;
+
     /**
      * Sets the name of the source file which is included in
      * the generator statement.
