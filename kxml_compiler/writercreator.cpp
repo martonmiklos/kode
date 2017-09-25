@@ -277,10 +277,10 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
 
     QString data = Namer::getAccessor( a ) + "()";
     if ( a.type() != Schema::Node::Enumeration ) {
-        code += "    xml.writeAttribute( \"" + a.name() + "\", " +
+        code += "xml.writeAttribute( \"" + a.name() + "\", " +
           dataToStringConverter( data, a ) + " );";
     } else if ( a.type() == Schema::Node::Enumeration ) {
-       code += "    xml.writeAttribute(\"" + a.name() + "\", " +
+       code += "xml.writeAttribute(\"" + a.name() + "\", " +
                a.name() + "EnumToString( " + a.name() + "() ));";
     }
   }
