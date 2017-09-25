@@ -635,6 +635,7 @@ void Creator::printFiles( KODE::Printer &printer )
   swapTmpFile(printer, targetHeader);
 
   QString targetImplementation = file().filenameImplementation();
+  file().setHeaderFilename(targetHeader); // it is important to have proper #include for the header
   file().setImplementationFilename(file().filenameImplementation() + ".tmp");
   if ( mVerbose ) {
     qDebug() <<"Print implementation" << file().filenameImplementation();
