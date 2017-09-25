@@ -285,6 +285,8 @@ ClassDescription Creator::createClassDescription(
         description.addProperty( "qint32", targetClassName );
       } else if ( targetElement.type() == Schema::Element::Integer ) {
         description.addProperty( "qlonglong", targetClassName );
+      } else if ( targetElement.type() == Schema::Element::Short ) {
+        description.addProperty( "qint16", targetClassName );
       } else if ( targetElement.type() == Schema::Element::Decimal ) {
         description.addProperty( "double", targetClassName );
       } else if ( targetElement.type() == Schema::Element::Date ) {
@@ -399,6 +401,7 @@ void Creator::createClass(const Schema::Element &element )
       if ( element.type() == Schema::Node::Decimal ||
            element.type() == Schema::Node::Int ||
            element.type() == Schema::Node::Byte ||
+           element.type() == Schema::Node::Short ||
            element.type() == Schema::Node::Integer ) {
         defaultCode += "mValue = 0;";
       } else if ( element.type() == Schema::Node::Enumeration ) {
@@ -691,6 +694,8 @@ QString Creator::typeName( Schema::Node::Type type )
     return "double";
   } else if ( type == Schema::Element::Byte ) {
     return "quint8";
+  } else if ( type == Schema::Element::Short ) {
+    return "qint16";
   } else if ( type == Schema::Element::String ||
               type == Schema::Element::NormalizedString ||
               type == Schema::Element::Token ) {

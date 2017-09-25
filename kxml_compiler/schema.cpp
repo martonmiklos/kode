@@ -363,6 +363,8 @@ Node::Type Node::typeFromString(QString xsType)
     return Schema::Node::Boolean;
   } else if ( xsType == "xs:byte" ) {
     return Schema::Node::Byte;
+  } else if ( xsType == "xs:short" ) {
+    return Schema::Node::Short;
   }
   return Schema::Node::None;
 }
@@ -535,6 +537,7 @@ bool Element::isNumeric() const
         type() == Integer ||
         type() == Decimal ||
         type() == Byte ||
+        type() == Short ||
         type() == Boolean);
 }
 

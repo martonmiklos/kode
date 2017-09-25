@@ -109,6 +109,7 @@ void WriterCreator::createElementWriter(
   case Schema::Element::Token:
   case Schema::Element::Int:
   case Schema::Element::Integer:
+  case Schema::Element::Short:
   case Schema::Element::Decimal:
   case Schema::Element::Byte:
   case Schema::Element::Date:
@@ -223,6 +224,7 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
   switch (element.type()) {
   case Schema::Element::Int:
   case Schema::Element::Byte:
+  case Schema::Element::Short:
     converter = "QString::number( " + data + ", 'f', 0)";
     break;
   case Schema::Element::Decimal:

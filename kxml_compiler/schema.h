@@ -100,11 +100,12 @@ class KSCHEMA_EXPORT Node : public Annotatable
                 Integer = 5, // xs:integer -> integer unbounded value
                 Decimal = 6,
                 Byte = 7, // xs:byte -> quint8
-                Date = 8,
-                DateTime = 9,
-                Boolean = 10,
-                Enumeration = 11,
-                ComplexType = 12
+                Short = 8, // xs:short -> qint16
+                Date = 9,
+                DateTime = 10,
+                Boolean = 11,
+                Enumeration = 12,
+                ComplexType = 13
                };
     Node();
     virtual ~Node();

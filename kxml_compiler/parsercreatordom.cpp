@@ -336,10 +336,14 @@ QString ParserCreatorDom::stringToDataConverter( const QString &data,
     converter = data + ".toLongLong()";
   } else if ( type == Schema::Element::Byte ) {
     converter = "(quint8)" + data + ".toInt()"; // TODO check data range?
+  } else if ( type == Schema::Element::Short ) {
+    converter = "(qint16)" + data + ".toInt()"; // TODO check data range?
   } else if ( type == Schema::Element::Decimal ) {
     converter = data + ".toDouble()";
   } else if ( type == Schema::Element::Date ) {
     converter = "QDate::fromString( " + data + ", \"yyyy-MM-dd\" )";
+  } else if ( type == Schema::Element::Boolean ) {
+    converter = "(" + data + ".toLower() == QStringLiteral(\"true\")) || (" + data + ".toLower() == QStringLiteral(\"1\") )";
   } else if ( type == Schema::Element::DateTime ) {
     converter = "QDateTime::fromString( " + data + ", \"yyyy-MM-ddthh:mm:ssZ\" )";
   } else {
