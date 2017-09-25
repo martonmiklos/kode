@@ -24,9 +24,6 @@
 ClassProperty::ClassProperty(const QString &type, const QString &name , bool isOptional)
   : m_type( type ), m_name( name ), m_isList( false ), m_targetHasId( false ), m_isOptionalElement(isOptional)
 {
-  if (ClassDescription::restrictedNames.contains(m_name.toLower())) {
-    m_name = m_name.append("_");
-  }
 }
 
 QString ClassProperty::type() const
@@ -71,17 +68,12 @@ void ClassProperty::setIsOptionalElement(bool isOptionalElement)
 void ClassProperty::setName(const QString &name)
 {
   m_name = name;
-  if (ClassDescription::restrictedNames.contains(m_name.toLower())) {
-    m_name = m_name.append("_");
-  }
 }
 
 ClassDescription::ClassDescription( const QString &name )
   : m_name( name )
 {
-  if (restrictedNames.contains(m_name.toLower())) {
-    m_name = m_name.append("_");
-  }
+
 }
 
 QString ClassDescription::name() const

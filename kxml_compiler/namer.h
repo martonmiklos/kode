@@ -40,6 +40,8 @@ class Namer
     static QString getMutator( const Schema::Attribute & );
     static QString getMutator( const QString & );
 
+    static QStringList restrictedNames;
+
   protected:
     static QString upperFirst( const QString &str );
     static QString lowerFirst( const QString &str );

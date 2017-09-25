@@ -70,7 +70,10 @@ QString Namer::getAccessor( const Schema::Attribute &attribute )
 
 QString Namer::getAccessor( const QString &elementName )
 {
-  return lowerFirst( getClassName( elementName ) );
+  QString name = lowerFirst(getClassName( elementName ));
+  if (restrictedNames.contains(name))
+    name = name.append('_');
+  return name;
 }
 
 QString Namer::getMutator( const Schema::Element &element )

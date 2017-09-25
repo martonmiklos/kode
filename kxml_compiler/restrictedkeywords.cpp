@@ -1,10 +1,10 @@
-#include "classdescription.h"
+#include "namer.h"
 
 // List here the C++ and Qt keywords to make sure that these XML members
 // will be suffixed with an '_' character to make the generated code compilable
 // source: http://en.cppreference.com/w/cpp/keyword
 
-QStringList ClassDescription::restrictedNames = QStringList() << "alignas "
+QStringList Namer::restrictedNames = QStringList() << "alignas "
                                                               << "alignof "
                                                               << "and"
                                                               << "and_eq"

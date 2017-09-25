@@ -78,7 +78,6 @@ class ClassDescription
 
     bool hasEnum( const QString &name ) const;
 
-    static QStringList restrictedNames;
 private:
     QString m_name;
     
