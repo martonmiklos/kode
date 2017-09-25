@@ -50,6 +50,11 @@ QString Namer::getClassName( const QString &elementName )
   foreach( QString part, parts ) {
     name += upperFirst( part );
   }
+
+  // reserved keywords are suffixed with an '_' to make sure that
+  // they do not make compiler errors. Append the _ to the return value too
+  if (elementName.endsWith("_"))
+    name = name.append("_");
   return name;
 }
 

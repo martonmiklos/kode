@@ -46,6 +46,8 @@ class ClassProperty
     bool isOptionalElement() const;
     void setIsOptionalElement(bool isOptionalElement);
 
+    void setName(const QString &name);
+
 private:
     QString m_type;
     QString m_name;
@@ -76,6 +78,7 @@ class ClassDescription
 
     bool hasEnum( const QString &name ) const;
 
+    static QStringList restrictedNames;
 private:
     QString m_name;
     

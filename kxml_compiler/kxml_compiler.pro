@@ -17,7 +17,8 @@ SOURCES += \
     parserxml.cpp \
     parserxsd.cpp \
     schema.cpp \
-    writercreator.cpp
+    writercreator.cpp \
+    restrictedkeywords.cpp
 
 HEADERS += \
     writercreator.h \
