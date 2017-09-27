@@ -29,15 +29,6 @@
 #include <libkode/typedef.h>
 #include <libkode/statemachine.h>
 
-/*#include <kaboutdata.h>
-#include <kapplication.h>
-#include <qDebug.h>
-#include <klocale.h>
-#include <kcmdlineargs.h>
-#include <kglobal.h>
-#include <kconfig.h>
-#include <kstandarddirs.h>*/
-
 #include <QFile>
 #include <QTextStream>
 #include <qdom.h>

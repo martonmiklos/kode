@@ -29,15 +29,6 @@
 #include <libkode/printer.h>
 #include <libkode/typedef.h>
 
-/*#include <kaboutdata.h>
-#include <qDebug.h>
-#include <klocale.h>
-#include <kcmdlineargs.h>
-#include <kglobal.h>
-#include <kconfig.h>
-#include <kstandarddirs.h>
-#include <kurl.h>*/
-
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QDebug>
