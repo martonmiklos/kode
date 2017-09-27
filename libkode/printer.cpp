@@ -687,6 +687,8 @@ void Printer::printHeader( const File &file )
 
   // Create include guard
   QString className = file.filenameHeader();
+  if (className.endsWith(".tmp"))
+    className = className.mid(0, className.length() - 4);
   QFileInfo headerInfo(className);
   className = headerInfo.fileName(); // remove path, keep only filename
   className.replace( '-', "_" );
