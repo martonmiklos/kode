@@ -1,12 +1,5 @@
 #include "filecompare.h"
 
-
-FileCompare::FileCompare()
-{
-
-}
-
-
 bool FileCompare::filesIdentical(const QString &f1, const QString &f2)
 {
     QFile file1(f1);

@@ -7,7 +7,7 @@
 class FileCompare
 {
 public:
-  FileCompare();
+  FileCompare() {}
   static bool filesIdentical(const QString &f1, const QString &f2);
 };
 

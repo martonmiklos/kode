@@ -41,6 +41,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QDir>
 #include <QDomDocument>
 #include <QFile>
 #include <QFileInfo>
@@ -289,6 +290,8 @@ int main( int argc, char **argv )
   printer.setCreationWarning( true );
   printer.setGenerator( QCoreApplication::applicationName() );
   printer.setOutputDirectory( cmdLine.value(dirOption) );
+  if (!printer.outputDirectory().endsWith(QDir::separator()))
+    printer.setOutputDirectory( printer.outputDirectory() + QDir::separator() );
   printer.setSourceFile( cmdLine.positionalArguments().at(0) );
 
   c.printFiles( printer );
