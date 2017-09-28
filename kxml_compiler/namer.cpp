@@ -76,6 +76,21 @@ QString Namer::getAccessor( const QString &elementName )
   return name;
 }
 
+QString Namer::getMemberVariable(const Schema::Element &element)
+{
+  return getMemberVariable( element.name() );
+}
+
+QString Namer::getMemberVariable(const Schema::Attribute &attribute)
+{
+  return getMemberVariable( attribute.name() );
+}
+
+QString Namer::getMemberVariable(const QString &elementName)
+{
+  return "m" + upperFirst(getClassName( elementName ));
+}
+
 QString Namer::getMutator( const Schema::Element &element )
 {
   return getMutator( element.name() );

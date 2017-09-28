@@ -138,6 +138,11 @@ int main( int argc, char **argv )
               "doclang");
   cmdLine.addOption(docLangOption);
 
+  QCommandLineOption pointerAccessor(
+              "pointer-accessors",
+              QCoreApplication::translate("main", "The generated accessor will return pointers"));
+  cmdLine.addOption(pointerAccessor);
+
   if (!cmdLine.parse(QCoreApplication::arguments())) {
     qDebug() << cmdLine.errorText();
     return -1;
@@ -239,6 +244,7 @@ int main( int argc, char **argv )
   c.setCreateCrudFunctions( cmdLine.isSet( "create-crud-functions" ) );
   c.setCreateWriteFunctions( !cmdLine.isSet( "dont-create-write-functions" ) );
   c.setCreateParseFunctions( !cmdLine.isSet( "dont-create-parse-functions" ) );
+  c.setPointerAccessors( cmdLine.isSet("pointer-accessors") );
   if ( cmdLine.isSet( namespaceOption ) ) {
     c.file().setNameSpace( cmdLine.value(namespaceOption ) );
   }

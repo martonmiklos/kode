@@ -85,8 +85,8 @@ class Creator
     void create();
 
     void createCrudFunctions( KODE::Class &c, const QString &type );
-    void createProperty( KODE::Class &c, const ClassDescription &,
-      const QString &type, const QString &name );
+    void createProperty(KODE::Class &c, const ClassDescription &,
+      const QString &type, const QString &name , bool accessorPointer = false);
 
     ClassDescription createClassDescription( const Schema::Element &element );
     void createClass(const Schema::Element &element);
@@ -111,6 +111,9 @@ class Creator
 
     bool createWriteFunctions() const;
     void setCreateWriteFunctions(bool createWriteFunctions);
+
+    bool pointerAccessors() const;
+    void setPointerAccessors(bool pointerAccessors);
 
 protected:
     void setExternalClassNames();
@@ -138,6 +141,7 @@ protected:
     bool mCreateCrudFunctions;
     bool m_createParseFunctions;
     bool m_createWriteFunctions;
+    bool m_pointerAccessors;
     QString mExportDeclaration;
     void createConstructorOptionalMemberInitializator( const ClassDescription & description, KODE::Code & code );
     void addCRUDConstructorCode( const ClassDescription &description, KODE::Code &code);

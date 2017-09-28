@@ -115,17 +115,18 @@ void WriterCreator::createElementWriter(
   case Schema::Element::Date:
   case Schema::Element::DateTime:
   case Schema::Element::Boolean:
-    if ( element.type() == Schema::Element::Date ) {
-      code += "if ( value().isValid() ) {";
+    if ( element.type() == Schema::Element::Date ||
+         element.type() == Schema::Element::DateTime ) {
+      code += "if ( mValue.isValid() ) {";
       code.indent();
     } else if ( !element.isNumeric() ){
-      code += "if ( !value().isEmpty() ) {";
+      code += "if ( mValue.isEmpty() ) {";
       code.indent();
     }
     addWriteStartElement( tag, targetNameSpace, code, element.isRootElement() );
     code += createAttributeWriter( element );
 
-    code += "xml.writeCharacters( " + dataToStringConverter( "value()", element ) + " );";
+    code += "xml.writeCharacters( " + dataToStringConverter( "mValue", element ) + " );";
     code += "xml.writeEndElement();";
     if ( !element.isNumeric() ){
       code.unindent();
@@ -138,7 +139,7 @@ void WriterCreator::createElementWriter(
     code += createAttributeWriter( element );
     code += "xml.writeCharacters( " +
             KODE::Style::lowerFirst( Namer::getClassName( element.name()))  +
-            "_EnumToString( value() ) );";
+            "_EnumToString( mValue ) );";
     code += "xml.writeEndElement();";
     break;
   case Schema::Element::ComplexType:
@@ -163,7 +164,7 @@ void WriterCreator::createElementWriter(
       foreach( Schema::Relation r, element.elementRelations() ) {
         if ( r.isList() ) {
           conditions.append( "!" +
-            Namer::getAccessor( r.target() ) + "List().isEmpty()" );
+            Namer::getMemberVariable( r.target() ) + "List.isEmpty()" );
         }
       }
       code += "if ( " + conditions.join( " || " ) + " ) {";
@@ -177,15 +178,15 @@ void WriterCreator::createElementWriter(
       QString type = Namer::getClassName( r.target() );
       if ( r.isList() ) {
         code += "foreach( " + type + " e, " +
-          Namer::getAccessor( r.target() ) + "List() ) {";
+          Namer::getMemberVariable( r.target() ) + "List ) {";
         code.indent();
         code += "e.writeElement( xml );";
         code.unindent();
         code += '}';
       } else {
         Schema::Element e = mDocument.element( r );
-        QString accessor = Namer::getAccessor( e ) + "()";
-        QString data = dataToStringConverter( accessor, e );
+        QString member = Namer::getMemberVariable( e ) ;
+        QString data = dataToStringConverter( member, e );
         if ( e.text() && !e.hasAttributeRelations() ) {
           if ( e.type() == Schema::Element::String ) {
             code += "if ( !" + data + ".isEmpty() ) {";
@@ -198,7 +199,7 @@ void WriterCreator::createElementWriter(
             code += "}";
           }
         } else {
-          code += Namer::getAccessor( r.target() ) + "().writeElement( xml );";
+          code += Namer::getMemberVariable( r.target() ) + ".writeElement( xml );";
         }
       }
     }
@@ -235,6 +236,11 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
     // format: [-]CCYY-MM-DD[Z|(+|-)hh:mm]
     // http://books.xmlschemata.org/relaxng/ch19-77041.html
     converter = data + ".toString( \"yyyy-MM-dd\" )";
+    break;
+  case Schema::Element::DateTime:
+    // format: [-]CCYY-MM-DD[Z|(+|-)hh:mm]
+    // http://books.xmlschemata.org/relaxng/ch19-77041.html
+    converter = data + ".toString( \"yyyy-MM-dd hh:mm\" )";
     break;
   case Schema::Element::Boolean:
     // Legal values for boolean are true, false, 1 (which indicates true), and 0 (which indicates false).
@@ -275,13 +281,13 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
   foreach( Schema::Relation r, element.attributeRelations() ) {
     Schema::Attribute a = mDocument.attribute( r );
 
-    QString data = Namer::getAccessor( a ) + "()";
+    QString data = Namer::getMemberVariable(a);
     if ( a.type() != Schema::Node::Enumeration ) {
-        code += "xml.writeAttribute( \"" + a.name() + "\", " +
+        code += "xml.writeAttribute( \" " + a.name() + "\", " +
           dataToStringConverter( data, a ) + " );";
     } else if ( a.type() == Schema::Node::Enumeration ) {
        code += "xml.writeAttribute(\"" + a.name() + "\", " +
-               a.name() + "EnumToString( " + a.name() + "() ));";
+               a.name() + "EnumToString( m" + a.name() + "() ));";
     }
   }
   

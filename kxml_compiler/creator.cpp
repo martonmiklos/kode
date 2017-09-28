@@ -60,7 +60,7 @@ bool Creator::ClassFlags::hasId() const
 
 Creator::Creator( const Schema::Document &document, XmlParserType p )
   : mDocument( document ), mXmlParserType( p ),
-    mVerbose( false ), mUseKde( false ), m_createParseFunctions(true), m_createWriteFunctions(true)
+    mVerbose( false ), mUseKde( false ), m_createParseFunctions(true), m_createWriteFunctions(true), m_pointerAccessors(false)
 {
   setExternalClassNames();
 }
@@ -117,7 +117,7 @@ KODE::File &Creator::file()
 
 void Creator::createProperty( KODE::Class &c,
   const ClassDescription &description, const QString &type,
-  const QString &name )
+  const QString &name, bool accessorPointer )
 {
   if ( type.startsWith( "Q" ) ) {
     c.addHeaderInclude( type );
@@ -152,13 +152,19 @@ void Creator::createProperty( KODE::Class &c,
     c.addFunction( mutator );
   }
 
-  KODE::Function accessor( Namer::getAccessor( name ), type );
-  accessor.setConst( true );
-  if ( type.right(4) == "Enum" ) {
-    accessor.setReturnType( c.name() + "::" + type );
+  QString prefixedType = type;
+  if (accessorPointer)
+    prefixedType = type + "*";
+  KODE::Function accessor( Namer::getAccessor( name ), prefixedType );
+  if (!accessorPointer)
+    accessor.setConst( true );
+  if ( type.endsWith("Enum") ) {
+    accessor.setReturnType( c.name() + "::" + prefixedType );
   }
-
-  accessor.addBodyLine( "return " + v.name() + ';' );
+  if (!accessorPointer)
+    accessor.addBodyLine( "return " + v.name() + ';' );
+  else
+    accessor.addBodyLine( "return &" + v.name() + ';' );
   c.addFunction( accessor );
 }
 
@@ -353,7 +359,7 @@ void Creator::createCRUDIsValid(KODE::Class & c, ClassDescription & description)
   }
 }
 
-void Creator::createClass(const Schema::Element &element )
+void Creator::createClass(const Schema::Element &element)
 {
   QString className = Namer::getClassName( element  );
   if ( mVerbose ) {
@@ -474,13 +480,13 @@ void Creator::createClass(const Schema::Element &element )
 
       c.addFunction( adder );
 
-      createProperty( c, description, p.type() + "::List", listName );
+      createProperty( c, description, p.type() + "::List", listName, m_pointerAccessors);
 
       if ( mCreateCrudFunctions && p.targetHasId() ) {
         createCrudFunctions( c, p.type() );
       }
     } else {
-      createProperty( c, description, p.type(), p.name() );
+      createProperty( c, description, p.type(), p.name(), m_pointerAccessors);
     }
   }
 
@@ -732,6 +738,16 @@ QString Creator::typeName(const Schema::Element &element)
     return typeName( element.type() );
   }
 }
+
+bool Creator::pointerAccessors() const
+{
+  return m_pointerAccessors;
+}
+
+void Creator::setPointerAccessors(bool pointerAccessors)
+{
+  m_pointerAccessors = pointerAccessors;
+}
 bool Creator::createWriteFunctions() const
 {
   return m_createWriteFunctions;
@@ -751,8 +767,6 @@ void Creator::setCreateParseFunctions(bool createParseFunctions)
 {
   m_createParseFunctions = createParseFunctions;
 }
-
-
 
 ParserCreator::ParserCreator( Creator *c )
   : mCreator( c )

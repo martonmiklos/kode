@@ -36,6 +36,10 @@ class Namer
     static QString getAccessor( const Schema::Attribute & );
     static QString getAccessor( const QString & );
 
+    static QString getMemberVariable( const Schema::Element & );
+    static QString getMemberVariable( const Schema::Attribute & );
+    static QString getMemberVariable(const QString &);
+
     static QString getMutator( const Schema::Element & );
     static QString getMutator( const Schema::Attribute & );
     static QString getMutator( const QString & );
