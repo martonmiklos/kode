@@ -394,11 +394,7 @@ void Creator::createClass(const Schema::Element &element)
       KODE::Code defaultCode;
       // initialize number based elements
       // FIXME/TODO add initializer rather
-      if ( element.type() == Schema::Node::Decimal ||
-           element.type() == Schema::Node::Int ||
-           element.type() == Schema::Node::Byte ||
-           element.type() == Schema::Node::Short ||
-           element.type() == Schema::Node::Integer ) {
+      if ( element.isNumeric() ) {
         defaultCode += "mValue = 0;";
       } else if ( element.type() == Schema::Node::Enumeration ) {
         QString typeNameStr = typeName( element ); // going to be suffixed with _Enum
@@ -408,6 +404,25 @@ void Creator::createClass(const Schema::Element &element)
       }
       defaultCode += "mValueHadBeenSet = false;";
       defaultCode += "mElementIsOptional = false;";
+
+      // TODO initialize enum variables too!
+      bool hasAttributeNeedsInitialization = false;
+      foreach( Schema::Relation r, element.attributeRelations() ) {
+        if (mDocument.attribute( r ).isNumeric()) {
+          hasAttributeNeedsInitialization = true;
+          break;
+        }
+      }
+      if (hasAttributeNeedsInitialization) {
+        defaultCode.newLine();
+        defaultCode.addLine("// initialize attributes with default values");
+        // initialize numeric attributes
+        foreach( Schema::Relation r, element.attributeRelations() ) {
+          if (mDocument.attribute( r ).isNumeric()) {
+            defaultCode += QString(Namer::getMemberVariable(mDocument.attribute( r ).name()) + " = 0;");
+          }
+        }
+      }
       createConstructorOptionalMemberInitializator( description, defaultCode );
       if (mCreateCrudFunctions)
         addCRUDConstructorCode( description, defaultCode );

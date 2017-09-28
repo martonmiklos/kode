@@ -530,7 +530,7 @@ void Element::setIsRootElement(bool IsRootElement)
     mIsRootElement = IsRootElement;
 }
 
-bool Element::isNumeric() const
+bool Node::isNumeric() const
 {
     return
         (type() == Int ||

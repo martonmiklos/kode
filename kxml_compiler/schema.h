@@ -126,6 +126,8 @@ class KSCHEMA_EXPORT Node : public Annotatable
 
     bool isValid() const;
 
+    bool isNumeric() const;
+
     void setEnumerationValues(const QList<XSD::SimpleType::EnumItem> & );
     QList<XSD::SimpleType::EnumItem> enumerationValues() const;
 
@@ -202,7 +204,6 @@ class KSCHEMA_EXPORT Element : public Node
     bool isRootElement() const;
     void setIsRootElement(bool isRootElement);
 
-    bool isNumeric() const;
 
 private:
     bool mText;
