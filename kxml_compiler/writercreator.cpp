@@ -144,12 +144,14 @@ void WriterCreator::createElementWriter(
     break;
   case Schema::Element::ComplexType:
     bool pureList = true;
+    bool baseType = true;
     if ( !element.attributeRelations().isEmpty() ) {
       pureList = false;
     } else {
       if ( element.elementRelations().isEmpty() ) {
         pureList = false;
       } else {
+        baseType = false;
         foreach( Schema::Relation r, element.elementRelations() ) {
           if ( !r.isList() ) {
             pureList = false;
@@ -203,6 +205,18 @@ void WriterCreator::createElementWriter(
         }
       }
     }
+
+    if (baseType) {
+      switch (element.baseType()) {
+      case Schema::Node::String:
+        code += "xml.writeCharacters( mStringValue );";
+        break;
+      // TODO implement for other simple types too!!
+      default:
+        break;
+      }
+    }
+
     code += "xml.writeEndElement();";
     
     if ( pureList ) {
@@ -280,14 +294,22 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
 
   foreach( Schema::Relation r, element.attributeRelations() ) {
     Schema::Attribute a = mDocument.attribute( r );
+    if (a.isOptional() ) {
+      code += QString("if (m%1AttributeHadBeenSet)").arg(Namer::getClassName( a.name() ));
+      code.indent();
+    }
 
     QString data = Namer::getMemberVariable(a);
     if ( a.type() != Schema::Node::Enumeration ) {
-        code += "xml.writeAttribute( \" " + a.name() + "\", " +
+        code += "xml.writeAttribute( \"" + a.name() + "\", " +
           dataToStringConverter( data, a ) + " );";
     } else if ( a.type() == Schema::Node::Enumeration ) {
        code += "xml.writeAttribute(\"" + a.name() + "\", " +
                a.name() + "EnumToString( m" + a.name() + "() ));";
+    }
+
+    if (a.isOptional()) {
+      code.unindent();
     }
   }
   

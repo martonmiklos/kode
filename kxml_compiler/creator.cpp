@@ -117,7 +117,7 @@ KODE::File &Creator::file()
 
 void Creator::createProperty( KODE::Class &c,
   const ClassDescription &description, const QString &type,
-  const QString &name, bool accessorPointer )
+  const QString &name, bool accessorPointer, ClassProperty *classProperty )
 {
   if ( type.startsWith( "Q" ) ) {
     c.addHeaderInclude( type );
@@ -126,46 +126,53 @@ void Creator::createProperty( KODE::Class &c,
   KODE::MemberVariable v( Namer::getClassName( name ), type );
   c.addMemberVariable( v );
 
-  KODE::Function mutator( Namer::getMutator( name ), "void" );
-  if ( type == "int" ) {
-    mutator.addArgument( type + " v" );
-  } else {
-    mutator.addArgument( "const " + type + " &v" );
-  }
-  mutator.addBodyLine( v.name() + " = v;" );
-  if ( mCreateCrudFunctions ) {
-    if ( name != "UpdatedAt" && name != "CreatedAt" ) {
-      if ( description.hasProperty( "UpdatedAt" ) ) {
-        mutator.addBodyLine( "setUpdatedAt( QDateTime::currentDateTime() );" );
-      }
-    }
-  }
-
-  if (name.toLower() == "value") {
-    mutator.addBodyLine( "mValueHadBeenSet = true;" );
-  }
-
   // do not pullote the code with the setValueHadBeenSet function
   // because that variable should be set only by the constructor
   // or the setValue method
-  if (!(type == "bool" && name == "valueHadBeenSet")) {
-    c.addFunction( mutator );
-  }
+  if (!(type == "bool" && name.endsWith("HadBeenSet"))) {
+    KODE::Function mutator( Namer::getMutator( name ), "void" );
+    if ( type == "int" ) {
+      mutator.addArgument( type + " v" );
+    } else {
+      mutator.addArgument( "const " + type + " &v" );
+    }
+    mutator.addBodyLine( v.name() + " = v;" );
+    if ( mCreateCrudFunctions ) {
+      if ( name != "UpdatedAt" && name != "CreatedAt" ) {
+        if ( description.hasProperty( "UpdatedAt" ) ) {
+          mutator.addBodyLine( "setUpdatedAt( QDateTime::currentDateTime() );" );
+        }
+      }
+    }
 
-  QString prefixedType = type;
-  if (accessorPointer)
-    prefixedType = type + "*";
-  KODE::Function accessor( Namer::getAccessor( name ), prefixedType );
-  if (!accessorPointer)
-    accessor.setConst( true );
-  if ( type.endsWith("Enum") ) {
-    accessor.setReturnType( c.name() + "::" + prefixedType );
+    if (classProperty != nullptr && classProperty->isOptional() && classProperty->classPropertyType() == ClassProperty::Attribute)  {
+      mutator.addBodyLine( "m" + Namer::getClassName( name ) + "AttributeHadBeenSet = true;" );
+
+      KODE::MemberVariable v( Namer::getClassName( name ) + "AttributeHadBeenSet", "bool" );
+      c.addMemberVariable( v );
+    }
+
+    if (name.toLower() == "value") {
+      mutator.addBodyLine( "mValueHadBeenSet = true;" );
+    }
+
+    c.addFunction( mutator );
+
+    QString prefixedType = type;
+    if (accessorPointer)
+      prefixedType = type + "*";
+    KODE::Function accessor( Namer::getAccessor( name ), prefixedType );
+    if (!accessorPointer)
+      accessor.setConst( true );
+    if ( type.endsWith("Enum") ) {
+      accessor.setReturnType( c.name() + "::" + prefixedType );
+    }
+    if (!accessorPointer)
+      accessor.addBodyLine( "return " + v.name() + ';' );
+    else
+      accessor.addBodyLine( "return &" + v.name() + ';' );
+    c.addFunction( accessor );
   }
-  if (!accessorPointer)
-    accessor.addBodyLine( "return " + v.name() + ';' );
-  else
-    accessor.addBodyLine( "return &" + v.name() + ';' );
-  c.addFunction( accessor );
 }
 
 void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
@@ -254,10 +261,14 @@ ClassDescription Creator::createClassDescription(
         description.addEnum(KODE::Enum(Namer::getClassName( a.name() ) + "Enum", a.enumerationValues()));
       }
       description.addProperty( Namer::getClassName( a.name() ) + "Enum",
-                               Namer::getClassName( a.name() ) );
+                               Namer::getClassName( a.name() ),
+                               a.isOptional(),
+                               ClassProperty::Attribute);
     } else {
       description.addProperty( typeName( a.type() ),
-                               Namer::getClassName( a.name() ) );
+                               Namer::getClassName( a.name() ),
+                               a.isOptional(),
+                               ClassProperty::Attribute);
     }
   }
 
@@ -308,10 +319,11 @@ ClassDescription Creator::createClassDescription(
           p.setTargetHasId( true );
         }
 
-        p.setIsOptionalElement( r.isOptional() );
+        p.setOptional( r.isOptional() );
         description.addProperty( p );
       } else {
-        description.addProperty( targetClassName, Namer::getClassName( name ), r.isOptional() );
+        ClassProperty p( targetClassName, Namer::getClassName( name ), r.isOptional() );
+        description.addProperty( p );
       }
     }
   }
@@ -341,7 +353,7 @@ void Creator::createConstructorOptionalMemberInitializator(
     KODE::Code & code )
 {
   foreach( ClassProperty p, description.properties() ) {
-    if ( p.isOptionalElement() && p.name().toLower() != "value") {
+    if ( p.isOptional() && p.classPropertyType() == ClassProperty::Element) {
       code += 'm' + KODE::Style::upperFirst( p.name() ) + ".setElementIsOptional( true );";
     }
   }
@@ -413,13 +425,21 @@ void Creator::createClass(const Schema::Element &element)
           break;
         }
       }
+
       if (hasAttributeNeedsInitialization) {
         defaultCode.newLine();
         defaultCode.addLine("// initialize attributes with default values");
         // initialize numeric attributes
         foreach( Schema::Relation r, element.attributeRelations() ) {
-          if (mDocument.attribute( r ).isNumeric()) {
+          // FIXME use default value for attributes
+          if (mDocument.attribute( r ).type() == Schema::Node::Boolean) {
+            defaultCode += QString(Namer::getMemberVariable(mDocument.attribute( r ).name()) + " = false;");
+          } else if (mDocument.attribute( r ).isNumeric()) {
             defaultCode += QString(Namer::getMemberVariable(mDocument.attribute( r ).name()) + " = 0;");
+          }
+
+          if (mDocument.attribute( r ).isOptional()) {
+            defaultCode += QString(Namer::getMemberVariable(mDocument.attribute( r ).name()) + "AttributeHadBeenSet = false;");
           }
         }
       }
@@ -495,13 +515,13 @@ void Creator::createClass(const Schema::Element &element)
 
       c.addFunction( adder );
 
-      createProperty( c, description, p.type() + "::List", listName, m_pointerAccessors);
+      createProperty( c, description, p.type() + "::List", listName, m_pointerAccessors, &p);
 
       if ( mCreateCrudFunctions && p.targetHasId() ) {
         createCrudFunctions( c, p.type() );
       }
     } else {
-      createProperty( c, description, p.type(), p.name(), m_pointerAccessors);
+      createProperty( c, description, p.type(), p.name(), m_pointerAccessors, &p);
     }
   }
 
@@ -509,6 +529,10 @@ void Creator::createClass(const Schema::Element &element)
   // with existing members low
   createProperty( c, description, "bool", "valueHadBeenSet" );
   createProperty( c, description, "bool", "elementIsOptional");
+
+  if (element.baseType() == Schema::Node::String) {
+    createProperty( c, description, "QString", "stringValue");
+  }
   
   foreach( KODE::Enum e, description.enums() ) {
     c.addEnum(e);

@@ -30,9 +30,14 @@
 class ClassProperty
 {
   public:
+    enum ClassPropertyType {
+      Element,
+      Attribute
+    };
+
     typedef QList<ClassProperty> List;
 
-    ClassProperty( const QString &type, const QString &name, bool isOptional = false );
+    ClassProperty( const QString &type, const QString &name, bool isOptional = false, ClassPropertyType classPropertyType = Element );
 
     QString type() const;
     QString name() const;
@@ -43,10 +48,13 @@ class ClassProperty
     void setTargetHasId( bool );
     bool targetHasId() const;
 
-    bool isOptionalElement() const;
-    void setIsOptionalElement(bool isOptionalElement);
+    bool isOptional() const;
+    void setOptional(bool isOptional);
 
     void setName(const QString &name);
+
+    ClassPropertyType classPropertyType() const;
+    void setClassPropertyType(const ClassPropertyType &classPropertyType);
 
 private:
     QString m_type;
@@ -54,7 +62,9 @@ private:
 
     bool m_isList;
     bool m_targetHasId;
-    bool m_isOptionalElement;
+    bool m_isOptional;
+    bool m_isElement;
+    ClassPropertyType m_classPropertyType;
 };
 
 class ClassDescription
@@ -65,7 +75,7 @@ class ClassDescription
     QString name() const;
 
     void addProperty( const ClassProperty & );
-    void addProperty(const QString &type, const QString &name , bool isOptional = false);
+    void addProperty(const QString &type, const QString &name , bool isOptional = false, ClassProperty::ClassPropertyType propertyType = ClassProperty::Element);
 
     ClassProperty::List properties() const;
 

@@ -69,9 +69,13 @@ class SCHEMA_EXPORT Attribute : public XmlElement
     void setArrayType( const QName &arrayType );
     QName arrayType() const;
 
-  private:
+    bool optional() const;
+    void setOptional(bool optional);
+
+private:
     class Private;
     Private *d;
+
 };
 
 }

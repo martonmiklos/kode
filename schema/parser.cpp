@@ -524,12 +524,16 @@ Attribute Parser::parseAttribute( ParserContext *context,
   newAttribute.setFixedValue( element.attribute( "fixed" ) );
 
   if ( element.hasAttribute( "use" ) ) {
-    if ( element.attribute( "use" ) == "optional" )
+    if ( element.attribute( "use" ) == "optional" ) {
       newAttribute.setIsUsed( false );
-    else if ( element.attribute( "use" ) == "required" )
+      newAttribute.setOptional( true );
+    } else if ( element.attribute( "use" ) == "required" ) {
       newAttribute.setIsUsed( true );
-    else
+      newAttribute.setOptional( false );
+    } else {
       newAttribute.setIsUsed( false );
+      newAttribute.setOptional( true );
+    }
   }
 
   QDomElement childElement = element.firstChildElement();

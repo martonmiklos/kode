@@ -165,8 +165,12 @@ class KSCHEMA_EXPORT Attribute : public Node
     void setDefaultValue(const QString defVal);
 
     QString ref() const;
-  private:
+    bool isOptional() const;
+    void setOptional(bool isOptional);
+
+private:
     bool mRequired;
+    bool mOptional;
     QString mDefVal;
 };
 

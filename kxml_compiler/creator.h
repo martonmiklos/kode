@@ -86,7 +86,8 @@ class Creator
 
     void createCrudFunctions( KODE::Class &c, const QString &type );
     void createProperty(KODE::Class &c, const ClassDescription &,
-      const QString &type, const QString &name , bool accessorPointer = false);
+      const QString &type, const QString &name ,
+      bool accessorPointer = false, ClassProperty *classProperty = nullptr);
 
     ClassDescription createClassDescription( const Schema::Element &element );
     void createClass(const Schema::Element &element);

@@ -37,6 +37,7 @@ public:
     QString mFixedValue;
     bool mQualified;
     bool mUse;
+    bool mOptional;
     QName mReference;
     QName mArrayType;
 };
@@ -156,6 +157,16 @@ void Attribute::setArrayType( const QName &arrayType )
 QName Attribute::arrayType() const
 {
   return d->mArrayType;
+}
+
+bool Attribute::optional() const
+{
+  return d->mOptional;
+}
+
+void Attribute::setOptional(bool optional)
+{
+  d->mOptional = optional;
 }
 
 }

@@ -570,3 +570,13 @@ QString Attribute::ref() const
 {
   return '@' + name();
 }
+
+bool Attribute::isOptional() const
+{
+  return mOptional;
+}
+
+void Attribute::setOptional(bool optional)
+{
+  mOptional = optional;
+}
