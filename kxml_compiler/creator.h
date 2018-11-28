@@ -106,7 +106,7 @@ class Creator
     QString errorStream() const;
     QString debugStream() const;
 
-  protected:
+protected:
     void setExternalClassNames();
 
     void createElementParser( KODE::Class &c, const Schema::Element &e );

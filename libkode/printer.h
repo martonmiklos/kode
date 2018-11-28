@@ -69,6 +69,11 @@ class KODE_EXPORT Printer
     void setCreationWarning( bool value );
 
     /**
+     * Sets whether the generated code should use C++11 features
+     */
+    void setCpp11Enabled( bool enabled);
+
+    /**
      * Sets the name of the @param generator which shall be
      * included in the C++ code.
      */

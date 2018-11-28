@@ -34,11 +34,7 @@ class Printer::Private
 {
   public:
     Private( Printer *parent )
-      : mParent( parent ),
-      mCreationWarning( false ),
-      mLabelsDefineIndent( true ),
-      mIndentLabels( true ),
-      mGenerator( "libkode" )
+      : mParent( parent )
     {
     }
 
@@ -55,10 +51,11 @@ class Printer::Private
 
     Printer *mParent;
     Style mStyle;
-    bool mCreationWarning;
-    bool mLabelsDefineIndent;
-    bool mIndentLabels;
-    QString mGenerator;
+    bool mCreationWarning = false;
+    bool mLabelsDefineIndent = true;
+    bool mIndentLabels = true;
+    bool mCpp11 = false;
+    QString mGenerator = QStringLiteral("libkode");
     QString mOutputDirectory;
     QString mSourceFile;
 };
@@ -242,8 +239,12 @@ QString Printer::Private::classHeader( const Class &classObject, bool publicMemb
     for ( it = functions.constBegin(); it != functions.constEnd(); ++it ) {
         if ( (*it).access() == Function::Private ) {
             hasPrivateFunc = true;
+            if (hasPrivateSlot)
+              break;
         } else if ( (*it).access() == (Function::Private | Function::Slot) ) {
             hasPrivateSlot = true;
+            if (hasPrivateFunc)
+              break;
         }
     }
 
@@ -273,7 +274,11 @@ QString Printer::Private::classHeader( const Class &classObject, bool publicMemb
 
         decl += formatType( v.type() );
 
-        decl += v.name() + ';';
+        decl += v.name();
+        if (v.type().endsWith("Enum") && mCpp11) {
+          decl += " = " + v.type().left(v.type().length() - 4) + "_Invalid";
+        }
+        decl += ';';
 
         code += decl;
       }
@@ -552,6 +557,11 @@ Printer& Printer::operator=( const Printer &other )
 void Printer::setCreationWarning( bool v )
 {
   d->mCreationWarning = v;
+}
+
+void Printer::setCpp11Enabled(bool enabled)
+{
+  d->mCpp11 = enabled;
 }
 
 void Printer::setGenerator( const QString &generator )

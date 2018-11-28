@@ -121,6 +121,11 @@ int main( int argc, char **argv )
               QCoreApplication::translate("main", "Create functions for dealing with data suitable for CRUD model"));
   cmdLine.addOption(createCRUDFunctionsOption);
 
+  QCommandLineOption cpp11(
+              "use-c++11",
+              QCoreApplication::translate("main", "Utilize C++11 only features in the generated codes"));
+  cmdLine.addOption(cpp11);
+
   if (!cmdLine.parse(QCoreApplication::arguments())) {
     qDebug() << cmdLine.errorText();
     return -1;
@@ -226,6 +231,7 @@ int main( int argc, char **argv )
   if ( cmdLine.isSet( "namespace" ) ) {
     c.file().setNameSpace( cmdLine.value( "namespace" ) );
   }
+
   if ( cmdLine.isSet( "export" ) ) {
     c.setExportDeclaration( cmdLine.value( "export" ) );
   }
@@ -261,6 +267,7 @@ int main( int argc, char **argv )
 
   KODE::Printer printer;
   printer.setCreationWarning( true );
+  printer.setCpp11Enabled(cmdLine.isSet(cpp11));
   printer.setGenerator( QCoreApplication::applicationName() );
   printer.setOutputDirectory( baseDir );
   printer.setSourceFile( cmdLine.positionalArguments().at(0) );
