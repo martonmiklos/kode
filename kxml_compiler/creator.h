@@ -106,7 +106,10 @@ class Creator
     QString errorStream() const;
     QString debugStream() const;
 
-  protected:
+    bool pointerBasedAccessors() const;
+    void setPointerBasedAccessors(bool pointerBasedAccessors);
+
+protected:
     void setExternalClassNames();
 
     void createElementParser( KODE::Class &c, const Schema::Element &e );
@@ -130,6 +133,7 @@ class Creator
     bool mVerbose;
     bool mUseKde;
     bool mCreateCrudFunctions;
+    bool mPointerBasedAccessors;
     QString mExportDeclaration;
 };
 

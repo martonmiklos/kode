@@ -124,7 +124,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
       foreach( Schema::Relation r, element.elementRelations() ) {
         if ( r.isList() ) {
           conditions.append( "!" +
-            Namer::getListAccessor( r.target()) + "().isEmpty()" );
+            Namer::getListMemberVariable(r.target()) + ".isEmpty()" );
         }
       }
       code += "if ( " + conditions.join( " || " ) + " ) {";
@@ -139,7 +139,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
       QString type = Namer::getClassName( r.target() );
       if ( r.isList() ) {
         code += "foreach( " + type + " e, " +
-          Namer::getListAccessor( r.target() ) + "() ) {";
+          Namer::getListMemberVariable(r.target()) + " ) {";
         code.indent();
         code += "e.writeElement( xml );";
         code.unindent();
@@ -160,7 +160,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
             code += "}";
           }
         } else {
-          code += Namer::getAccessor( r.target() ) + "().writeElement( xml );";
+          code += Namer::getMemberVariable( r.target() ) + ".writeElement( xml );";
         }
       }
     }

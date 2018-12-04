@@ -143,13 +143,22 @@ void Creator::createProperty( KODE::Class &c,
   }
   c.addFunction( mutator );
 
-  KODE::Function accessor( Namer::getAccessor( name ), type );
-  accessor.setConst( true );
+  QString accessorType = type;
+  if (mPointerBasedAccessors && !isBaseType && type.right(4) != "Enum")
+    accessorType.append("*");
+
+  KODE::Function accessor( Namer::getAccessor( name ), accessorType );
+  if (!(mPointerBasedAccessors && !isBaseType && type.right(4) != "Enum"))
+    accessor.setConst( true );
+
   if ( type.right(4) == "Enum" ) {
     accessor.setReturnType( c.name() + "::" + type );
   }
 
-  accessor.addBodyLine( "return " + v.name() + ';' );
+  if (mPointerBasedAccessors && !isBaseType && type.right(4) != "Enum")
+    accessor.addBodyLine( "return &" + v.name() + ';' );
+  else
+    accessor.addBodyLine( "return " + v.name() + ';' );
   c.addFunction( accessor );
 }
 
@@ -369,13 +378,13 @@ void Creator::createClass( const Schema::Element &element )
 
       c.addFunction( adder );
 
-      createProperty( c, description, p.type() + "::List", listName );
+      createProperty( c, description, p.type() + "::List", listName, p.isBaseType());
 
       if ( mCreateCrudFunctions && p.targetHasId() ) {
         createCrudFunctions( c, p.type() );
       }
     } else {
-      createProperty( c, description, p.type(), p.name() );
+      createProperty( c, description, p.type(), p.name(), p.isBaseType());
     }
   }
 
@@ -565,6 +574,16 @@ QString Creator::typeName( Schema::Node::Type type )
   } else {
     return "QString";
   }
+}
+
+bool Creator::pointerBasedAccessors() const
+{
+  return mPointerBasedAccessors;
+}
+
+void Creator::setPointerBasedAccessors(bool pointerBasedAccessors)
+{
+  mPointerBasedAccessors = pointerBasedAccessors;
 }
 
 ParserCreator::ParserCreator( Creator *c )
