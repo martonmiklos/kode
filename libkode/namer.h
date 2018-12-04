@@ -29,6 +29,8 @@ class Namer
   public:
     static QString getClassName( const QString & );
     static QString getAccessor( const QString & );
+    static QString getMemberVariable(const QString &memberName);
+    static QString getListMemberVariable(const QString &memberName);
     static QString getListAccessor( const QString & );
     static QString getMutator( const QString & );
 
@@ -56,12 +58,6 @@ class Namer
      * underscore
      */
     static QString sanitize( const QString & name );
-
-
-
-  protected:
-    static QString upperFirst( const QString &str );
-    static QString lowerFirst( const QString &str );
 
   private:
     static QStringList m_reservedKeywords;

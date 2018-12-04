@@ -19,6 +19,7 @@
 #ifndef WRITERCREATOR_H
 #define WRITERCREATOR_H
 
+#include "creator.h"
 #include "schema.h"
 
 #include <libkode/file.h>
@@ -26,7 +27,7 @@
 class WriterCreator
 {
   public:
-    WriterCreator( KODE::File &, Schema::Document &document, const QString &dtd );
+    WriterCreator( KODE::File &, Schema::Document &document, const QString &dtd, Creator *creator );
 
     void createFileWriter( const QString &className,
       const QString &errorStream );
@@ -44,6 +45,7 @@ class WriterCreator
     KODE::File &mFile;
     Schema::Document &mDocument;
     QString mDtd;
+    Creator *mCreator;
 };
 
 #endif

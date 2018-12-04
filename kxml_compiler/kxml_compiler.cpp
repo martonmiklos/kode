@@ -121,6 +121,11 @@ int main( int argc, char **argv )
               QCoreApplication::translate("main", "Create functions for dealing with data suitable for CRUD model"));
   cmdLine.addOption(createCRUDFunctionsOption);
 
+  QCommandLineOption pointersAccessorsOption(
+              "pointer-accessors",
+              QCoreApplication::translate("main", "Generate pointer based accessor functions"));
+  cmdLine.addOption(pointersAccessorsOption);
+
   if (!cmdLine.parse(QCoreApplication::arguments())) {
     qDebug() << cmdLine.errorText();
     return -1;
@@ -220,23 +225,24 @@ int main( int argc, char **argv )
   }
 
   Creator c( schemaDocument, pt );
-  c.setVerbose( verbose );
-  c.setUseKde( cmdLine.isSet( "use-kde" ) );
-  c.setCreateCrudFunctions( cmdLine.isSet( "create-crud-functions" ) );
-  if ( cmdLine.isSet( "namespace" ) ) {
-    c.file().setNameSpace( cmdLine.value( "namespace" ) );
+  c.setVerbose(verbose);
+  c.setUseKde(cmdLine.isSet(useKdeOption));
+  c.setCreateCrudFunctions( cmdLine.isSet(createCRUDFunctionsOption) );
+  c.setPointerBasedAccessors( cmdLine.isSet(pointersAccessorsOption));
+  if ( cmdLine.isSet(namespaceOption) ) {
+    c.file().setNameSpace( cmdLine.value(namespaceOption) );
   }
-  if ( cmdLine.isSet( "export" ) ) {
-    c.setExportDeclaration( cmdLine.value( "export" ) );
+  if ( cmdLine.isSet(exportOption) ) {
+    c.setExportDeclaration( cmdLine.value(exportOption) );
   }
 
-  if ( cmdLine.isSet( "license" ) ) {
-    QString l = cmdLine.value( "license" );
-    if ( l == "gpl" ) {
+  if ( cmdLine.isSet(licenseOption) ) {
+    QString licenseType = cmdLine.value(licenseOption);
+    if (licenseType == "gpl") {
       c.setLicense( KODE::License( KODE::License::GPL ) );
-    } else if ( l == "bsd" ) {
+    } else if ( licenseType == "bsd" ) {
       c.setLicense( KODE::License( KODE::License::BSD ) );
-    } else if ( l == "lgpl" ) {
+    } else if ( licenseType == "lgpl" ) {
       c.setLicense( KODE::License( KODE::License::LGPL ) );
     }
   }

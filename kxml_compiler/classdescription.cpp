@@ -56,6 +56,19 @@ bool ClassProperty::targetHasId() const
   return m_targetHasId;
 }
 
+bool ClassProperty::isBasicType() const
+{
+  return isBasicType(m_type);
+}
+
+bool ClassProperty::isBasicType(const QString type)
+{
+  return type == "int"
+      || type == "double"
+      || type == "bool"
+      || type == "QString"
+      || type == "QDate";
+}
 
 ClassDescription::ClassDescription( const QString &name )
   : m_name( name )

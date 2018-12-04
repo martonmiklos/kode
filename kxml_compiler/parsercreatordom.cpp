@@ -52,7 +52,14 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
   if ( creator()->externalParser() ) functionName = "parseElement" + c.name();
   else functionName = "parseElement";
 
-  KODE::Function parser( functionName, c.name() );
+  bool pointerBased = (creator()->pointerBasedAccessors() && !ClassProperty::isBasicType(c.name()));
+  QString memberAccessor = pointerBased ? "->" : ".";
+
+  KODE::Function parser( functionName );
+  if (pointerBased)
+    parser.setReturnType( c.name() + "*" );
+  else
+    parser.setReturnType( c.name() );
   parser.setStatic( true );
   parser.setDocs( "Parse XML object from DOM element." );
 
@@ -68,12 +75,19 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
   code += creator()->errorStream() + " << \"Expected '" + e.name() +
     "', got '\" << element.tagName() << \"'.\";";
   code += "if ( ok ) *ok = false;";
-  code += "return " + c.name() + "();";
+  if (pointerBased)
+    code += "return nullptr;";
+  else
+    code += "return " + c.name() + "();";
+
   code.unindent();
   code += '}';
   code.newLine();
 
-  code += c.name() + " result = " + c.name() + "();";
+  if (pointerBased)
+    code += c.name() + "* result = new " + c.name() + "();";
+  else
+    code += c.name() + " result = " + c.name() + "();";
   code.newLine();
 
   if ( e.hasElementRelations() ) {
@@ -87,13 +101,15 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
     Schema::Relation::List::ConstIterator it;
     for( it = elementRelations.constBegin(); it != elementRelations.constEnd(); ++it ) {
       QString condition;
+      QString className = Namer::getClassName( (*it).target() );
+      bool memberIsPointer = creator()->pointerBasedAccessors()
+                             && !ClassProperty::isBasicType(className);
       if ( it != elementRelations.constBegin() ) condition = "else ";
       condition += "if";
-
       code += condition + " ( e.tagName() == \"" + (*it).target() + "\" ) {";
       code.indent();
 
-      QString className = Namer::getClassName( (*it).target() );
+
 
       Schema::Element targetElement =
         creator()->document().element( (*it).target() );
@@ -101,10 +117,16 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
       if ( targetElement.text() && !targetElement.hasAttributeRelations() &&
            !(*it).isList() ) {
         QString data = stringToDataConverter( "e.text()", targetElement.type() );
-        code += "result.set" + className + "( " + data + " );";
+        code += "result" + memberAccessor + "set" + className + "( " + data + " );";
       } else {
+        // this is a list
         code += "bool ok;";
-        QString line = className + " o = ";
+        QString line;
+
+        if (memberIsPointer)
+          line = className + " *o = ";
+        else
+          line = className + " o = ";
         if ( creator()->externalParser() ) {
           line += "parseElement" + className;
         } else {
@@ -114,9 +136,9 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
         code += line;
 
         if ( (*it).isList() ) {
-          code += "if ( ok ) result.add" + className + "( o );";
+          code += "if ( ok ) result" + memberAccessor + "add" + className + "( o );";
         } else {
-          code += "if ( ok ) result.set" + className + "( o );";
+          code += "if ( ok ) result" + memberAccessor + "set" + className + "( o );";
         }
       }
 
@@ -130,7 +152,7 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
   }
   
   if ( e.text() ) {
-    code += "result.setValue( " + stringToDataConverter( "element.text()", e.type() ) + " );";
+    code += "result" + memberAccessor + "setValue( " + stringToDataConverter( "element.text()", e.type() ) + " );";
   }
 
   foreach( Schema::Relation r, e.attributeRelations() ) {
@@ -148,11 +170,15 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
       code += "if (ok && *ok == false) {";
       code.indent();
       code += "qCritical() << \"Invalid string: \\\"\" << element.attribute( \"" + a.name() + "\" ) << \"\\\" in the \\\"" + a.name() + "\\\" element\";";
-      code += "return " + c.name() + "();";
+      if (creator()->pointerBasedAccessors()
+          && !ClassProperty::isBasicType(c.name()))
+        code += "return nullptr;";
+      else
+        code += "return " + c.name() + "();";
       code.unindent();
       code += "} else {";
       code.indent();
-      code += "result.set" + Namer::getClassName( a.name() ) +
+      code += "result" + memberAccessor + "set" + Namer::getClassName( a.name() ) +
               "( " + enumName + " );";
       code.unindent();
       code += "}";
@@ -161,14 +187,14 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
         code.unindent();
         code += "} else {";
         code.indent();
-        code += "result.set" + Namer::getClassName(a.name()) + "(" + KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumFromString(\""+a.defaultValue()+"\"));";
+        code += "result" + memberAccessor + "set" + Namer::getClassName(a.name()) + "(" + KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumFromString(\""+a.defaultValue()+"\"));";
         code.unindent();
         code += "}";
       }
     } else {
       QString data = stringToDataConverter( "element.attribute( \"" + a.name() + "\" )", a.type() );
 
-      code += "result.set" + Namer::getClassName( a.name() ) +
+      code += "result" + memberAccessor + "set" + Namer::getClassName( a.name() ) +
               "( " + data + " );";
     }
   }
@@ -194,6 +220,14 @@ void ParserCreatorDom::createFileParser( const Schema::Element &element )
   QString className = Namer::getClassName( element.name() );
 
   KODE::Class c;
+  bool ptrBased = false;
+  QString typePrefix = QString("");
+  if (creator()->pointerBasedAccessors()
+      && !ClassProperty::isBasicType(className)
+      && !className.endsWith("Enum")) {
+    typePrefix = "*";
+    ptrBased = true;
+  }
 
   if ( creator()->externalParser() ) {
     c = creator()->parserClass();
@@ -207,7 +241,7 @@ void ParserCreatorDom::createFileParser( const Schema::Element &element )
     c.addInclude( "QtDebug" );
   } 
 
-  KODE::Function parser( "parseFile", className );
+  KODE::Function parser( "parseFile", className + typePrefix );
   parser.setStatic( true );
 
   parser.addArgument( "const QString &filename" );
@@ -222,7 +256,10 @@ void ParserCreatorDom::createFileParser( const Schema::Element &element )
   code += "if ( !file.open( QIODevice::ReadOnly ) ) {";
   code += "  " + creator()->errorStream() + " << \"Unable to open file '\" << filename << \"'\";";
   code += "  if ( ok ) *ok = false;";
-  code += "  return " + className + "();";
+  if (ptrBased)
+    code += "  return nullptr;";
+  else
+    code += "  return " + className + "();";
   code += '}';
   code += "";
   code += "QString errorMsg;";
@@ -231,13 +268,16 @@ void ParserCreatorDom::createFileParser( const Schema::Element &element )
   code += "if ( !doc.setContent( &file, false, &errorMsg, &errorLine, &errorCol ) ) {";
   code += "  " + creator()->errorStream() + " << errorMsg << \" at \" << errorLine << \",\" << errorCol;";
   code += "  if ( ok ) *ok = false;";
-  code += "  return " + className + "();";
+  if (ptrBased)
+    code += "  return nullptr;";
+  else
+    code += "  return " + className + "();";
   code += '}';
 
   code.newLine();
 
   code += "bool documentOk;";
-  QString line = className + " c = parseElement";
+  QString line = className + typePrefix + " c = parseElement";
   if ( creator()->externalParser() ) line += className;
   line += "( doc.documentElement(), &documentOk );";
   code += line;
@@ -262,7 +302,15 @@ void ParserCreatorDom::createStringParser( const Schema::Element &element )
 {
   QString className = Namer::getClassName( element.name() );
 
+  bool ptrBased = false;
   KODE::Class c;
+  QString typePrefix = QString("");
+  if (creator()->pointerBasedAccessors()
+      && !ClassProperty::isBasicType(className)
+      && !className.endsWith("Enum")) {
+    typePrefix = "*";
+    ptrBased = true;
+  }
 
   if ( creator()->externalParser() ) {
     c = creator()->parserClass();
@@ -276,7 +324,7 @@ void ParserCreatorDom::createStringParser( const Schema::Element &element )
     c.addInclude( "QtDebug" );
   } 
 
-  KODE::Function parser( "parseString", className );
+  KODE::Function parser( "parseString", className + typePrefix );
   parser.setStatic( true );
 
   parser.addArgument( "const QString &xml" );
@@ -293,13 +341,16 @@ void ParserCreatorDom::createStringParser( const Schema::Element &element )
   code += "if ( !doc.setContent( xml, false, &errorMsg, &errorLine, &errorCol ) ) {";
   code += "  " + creator()->errorStream() + " << errorMsg << \" at \" << errorLine << \",\" << errorCol;";
   code += "  if ( ok ) *ok = false;";
-  code += "  return " + className + "();";
+  if (ptrBased)
+    code += "  return nullptr;";
+  else
+    code += "  return " + className + "();";
   code += '}';
 
   code.newLine();
 
   code += "bool documentOk;";
-  QString line = className + " c = parseElement";
+  QString line = className + typePrefix + " c = parseElement";
   if ( creator()->externalParser() ) line += className;
   line += "( doc.documentElement(), &documentOk );";
   code += line;

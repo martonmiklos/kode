@@ -25,6 +25,7 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QDebug>
+#include <QDir>
 
 #include "printer.h"
 
@@ -808,9 +809,12 @@ void Printer::printHeader( const File &file )
 
   // Print to file
   QString filename = file.filenameHeader();
-
-  if ( !d->mOutputDirectory.isEmpty() )
-    filename.prepend( d->mOutputDirectory + '/' );
+  if (!d->mOutputDirectory.isEmpty()) {
+    if (d->mOutputDirectory.endsWith(QDir::separator()))
+      filename.prepend(d->mOutputDirectory);
+    else
+      filename.prepend(d->mOutputDirectory + QDir::separator());
+  }
 
 //  KSaveFile::simpleBackupFile( filename, QString(), ".backup" );
 
@@ -951,9 +955,12 @@ void Printer::printImplementation( const File &file, bool createHeaderInclude )
 
   // Print to file
   QString filename = file.filenameImplementation();
-
-  if ( !d->mOutputDirectory.isEmpty() )
-    filename.prepend( d->mOutputDirectory + '/' );
+  if (!d->mOutputDirectory.isEmpty()) {
+    if (d->mOutputDirectory.endsWith(QDir::separator()))
+      filename.prepend(d->mOutputDirectory);
+    else
+      filename.prepend(d->mOutputDirectory + QDir::separator());
+  }
 
   QFile implementation( filename );
   if ( !implementation.open( QIODevice::WriteOnly ) ) {

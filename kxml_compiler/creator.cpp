@@ -47,7 +47,7 @@ Creator::ClassFlags::ClassFlags( const Schema::Element &element )
   m_hasId = element.hasRelation( "id" );
   m_hasUpdatedTimestamp = element.hasRelation( "updated_at" );
 }
-    
+
 bool Creator::ClassFlags::hasUpdatedTimestamp() const
 {
   return m_hasUpdatedTimestamp;
@@ -117,21 +117,32 @@ KODE::File &Creator::file()
 }
 
 void Creator::createProperty( KODE::Class &c,
-  const ClassDescription &description, const QString &type,
-  const QString &name )
+                              const ClassDescription &description, const QString &type,
+                              const QString &name)
 {
   if ( type.startsWith( "Q" ) ) {
     c.addHeaderInclude( type );
   }
 
-  KODE::MemberVariable v( Namer::getClassName( name ), type );
+  bool propertyIsPointer = (mPointerBasedAccessors
+                         && !type.endsWith("Enum")
+                         && !type.endsWith("List")
+                         && !ClassProperty::isBasicType(type));
+  QString memberType = type;
+  if (propertyIsPointer)
+    memberType.append("*");
+
+  KODE::MemberVariable v(Namer::getClassName( name ), memberType);
   c.addMemberVariable( v );
 
   KODE::Function mutator( Namer::getMutator( name ), "void" );
   if ( type == "int" || type == "double" ) {
-    mutator.addArgument( type + " v" );
+    mutator.addArgument( "const " + type + " v" );
   } else {
-    mutator.addArgument( "const " + type + " &v" );
+    if (propertyIsPointer)
+      mutator.addArgument( type + " *v" );
+    else
+      mutator.addArgument( "const " + type + " &v" );
   }
   mutator.addBodyLine( v.name() + " = v;" );
   if ( mCreateCrudFunctions ) {
@@ -143,13 +154,23 @@ void Creator::createProperty( KODE::Class &c,
   }
   c.addFunction( mutator );
 
-  KODE::Function accessor( Namer::getAccessor( name ), type );
-  accessor.setConst( true );
+  QString accessorType = type;
+  if (propertyIsPointer || (mPointerBasedAccessors && type.endsWith("List")))
+    accessorType.append("*");
+
+  KODE::Function accessor( Namer::getAccessor( name ), accessorType );
+  if (!propertyIsPointer
+      && !(mPointerBasedAccessors && type.endsWith("List")))
+    accessor.setConst( true );
+
   if ( type.right(4) == "Enum" ) {
     accessor.setReturnType( c.name() + "::" + type );
   }
 
-  accessor.addBodyLine( "return " + v.name() + ';' );
+  if (mPointerBasedAccessors && type.endsWith("List"))
+    accessor.addBodyLine( "return &" + v.name() + ';' );
+  else
+    accessor.addBodyLine( "return " + v.name() + ';' );
   c.addFunction( accessor );
 }
 
@@ -213,7 +234,7 @@ void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
 
   code += type + "::List::Iterator it;";
   code += "for( it = " + listMember + ".begin(); it != " + listMember +
-    ".end(); ++it ) {";
+          ".end(); ++it ) {";
   code += "  if ( (*it).id() == v.id() ) break;";
   code += "}";
   code += "if ( it != " + listMember + ".end() ) {";
@@ -228,7 +249,7 @@ void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
 
 
 ClassDescription Creator::createClassDescription(
-  const Schema::Element &element )
+    const Schema::Element &element )
 {
   ClassDescription description( Namer::getClassName( element.name() ) );
 
@@ -327,19 +348,19 @@ void Creator::createClass( const Schema::Element &element )
   bool hasCreatedAt = description.hasProperty( "CreatedAt" );
   bool hasUpdatedAt = description.hasProperty( "UpdatedAt" );
 
+  KODE::Function constructor( className, "" );
+  bool addConstructor = false;
+  KODE::Code constructorCode;
   if ( mCreateCrudFunctions ) {
     if ( hasCreatedAt || hasUpdatedAt ) {
-      KODE::Function constructor( className, "" );
-      KODE::Code code;
-      code += "QDateTime now = QDateTime::currentDateTime();";
+      constructorCode += "QDateTime now = QDateTime::currentDateTime();";
       if ( hasCreatedAt ) {
-        code += "setCreatedAt( now );";
+        constructorCode += "setCreatedAt( now );";
       }
       if ( hasUpdatedAt ) {
-        code += "setUpdatedAt( now );";
+        constructorCode += "setUpdatedAt( now );";
       }
-      constructor.setBody( code );
-      c.addFunction( constructor );
+      addConstructor = true;
     }
 
     if ( description.hasProperty( "Id" ) ) {
@@ -352,6 +373,35 @@ void Creator::createClass( const Schema::Element &element )
     }
   }
 
+  bool classIsPointer = (mPointerBasedAccessors
+                         && !ClassProperty::isBasicType(c.name())
+                         && !c.name().endsWith("Enum"));
+  if (classIsPointer) {
+    // add constructor and desctructor if pointer based acces is present
+    KODE::Function constructor(c.name());
+    foreach(ClassProperty p, description.properties()) {
+      if (mPointerBasedAccessors
+          && !p.isBasicType()
+          && !p.isList()
+          && !p.type().endsWith("Enum"))  {
+        // TODO move them to the initializer list
+        KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
+        constructorCode.addLine( v.name() + " = nullptr;");
+      }
+    }
+
+    constructor.setBody( constructorCode );
+    c.addFunction(constructor);
+
+    KODE::Function destructor("~" + c.name());
+    c.addFunction(destructor);
+  } else {
+    if (addConstructor) {
+      constructor.setBody( constructorCode );
+      c.addFunction(constructor);
+    }
+  }
+
   foreach( ClassProperty p, description.properties() ) {
     if ( p.isList() ) {
       registerListTypedef( p.type() );
@@ -360,7 +410,11 @@ void Creator::createClass( const Schema::Element &element )
       QString listName = p.name() + "List";
 
       KODE::Function adder( "add" + p.type(), "void" );
-      adder.addArgument( "const " + p.type() + " &v" );
+      if (mPointerBasedAccessors && !p.isBasicType()) {
+        adder.addArgument( p.type() + "* v" );
+      } else {
+        adder.addArgument( "const " + p.type() + " &v" );
+      }
 
       KODE::Code code;
       code += 'm' + KODE::Style::upperFirst( listName ) + ".append( v );";
@@ -369,13 +423,13 @@ void Creator::createClass( const Schema::Element &element )
 
       c.addFunction( adder );
 
-      createProperty( c, description, p.type() + "::List", listName );
+      createProperty( c, description, p.type() + "::List", listName);
 
       if ( mCreateCrudFunctions && p.targetHasId() ) {
         createCrudFunctions( c, p.type() );
       }
     } else {
-      createProperty( c, description, p.type(), p.name() );
+      createProperty( c, description, p.type(), p.name());
     }
   }
 
@@ -385,7 +439,7 @@ void Creator::createClass( const Schema::Element &element )
 
   createElementParser( c, element );
   
-  WriterCreator writerCreator( mFile, mDocument, mDtd );
+  WriterCreator writerCreator( mFile, mDocument, mDtd, this );
   writerCreator.createElementWriter( c, element );
 
   mFile.insertClass( c );
@@ -396,10 +450,10 @@ void Creator::createElementParser( KODE::Class &c, const Schema::Element &e )
   ParserCreator *parserCreator = 0;
 
   switch ( mXmlParserType ) {
-    case XmlParserDom:
-    case XmlParserDomExternal:
-      parserCreator = new ParserCreatorDom( this );
-      break;
+  case XmlParserDom:
+  case XmlParserDomExternal:
+    parserCreator = new ParserCreatorDom( this );
+    break;
   }
 
   if ( parserCreator == 0 ) {
@@ -422,7 +476,11 @@ void Creator::createListTypedefs()
   for( it = mListTypedefs.constBegin(); it != mListTypedefs.constEnd(); ++it ) {
     KODE::Class c = mFile.findClass( *it );
     if ( !c.isValid() ) continue;
-    c.addTypedef( KODE::Typedef( "QList<" + *it + '>', "List" ) );
+
+    if (mPointerBasedAccessors)
+      c.addTypedef( KODE::Typedef( "QList<" + *it + "*>", "List" ) );
+    else
+      c.addTypedef( KODE::Typedef( "QList<" + *it + '>', "List" ) );
     mFile.insertClass( c );
   }
 }
@@ -434,9 +492,9 @@ void Creator::setDtd( const QString &dtd )
 
 void Creator::createFileWriter( const Schema::Element &element )
 {
-  WriterCreator writerCreator( mFile, mDocument, mDtd );
+  WriterCreator writerCreator( mFile, mDocument, mDtd, this );
   writerCreator.createFileWriter( Namer::getClassName( element.name() ),
-    errorStream() );
+                                  errorStream() );
 }
 
 void Creator::createFileParser( const Schema::Element &element )
@@ -444,10 +502,10 @@ void Creator::createFileParser( const Schema::Element &element )
   ParserCreator *parserCreator = 0;
 
   switch ( mXmlParserType ) {
-    case XmlParserDom:
-    case XmlParserDomExternal:
-      parserCreator = new ParserCreatorDom( this );
-      break;
+  case XmlParserDom:
+  case XmlParserDomExternal:
+    parserCreator = new ParserCreatorDom( this );
+    break;
   }
 
   parserCreator->createFileParser( element );
@@ -473,7 +531,7 @@ void Creator::printFiles( KODE::Printer &printer )
     printer.printHeader( parserFile );
     if ( mVerbose ) {
       qDebug() <<"Print external parser implementation"
-        << parserFile.filenameImplementation();
+              << parserFile.filenameImplementation();
     }
     printer.printImplementation( parserFile );
   }
@@ -538,7 +596,7 @@ void Creator::create()
   Schema::Element startElement = mDocument.startElement();
   setExternalClassPrefix( KODE::Style::upperFirst( startElement.name() ) );
   createFileParser( startElement );
-//  setDtd( schemaFilename.replace( "rng", "dtd" ) );
+  //  setDtd( schemaFilename.replace( "rng", "dtd" ) );
   createFileWriter( startElement );
 
   createListTypedefs();
@@ -565,6 +623,16 @@ QString Creator::typeName( Schema::Node::Type type )
   } else {
     return "QString";
   }
+}
+
+bool Creator::pointerBasedAccessors() const
+{
+  return mPointerBasedAccessors;
+}
+
+void Creator::setPointerBasedAccessors(bool pointerBasedAccessors)
+{
+  mPointerBasedAccessors = pointerBasedAccessors;
 }
 
 ParserCreator::ParserCreator( Creator *c )

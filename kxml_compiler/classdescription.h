@@ -43,7 +43,10 @@ class ClassProperty
     void setTargetHasId( bool );
     bool targetHasId() const;
 
-  private:
+    bool isBasicType() const;
+    static bool isBasicType(const QString type);
+
+private:
     QString m_type;
     QString m_name;
 

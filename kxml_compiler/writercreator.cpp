@@ -24,9 +24,9 @@
 
 #include <QDebug>
 
-WriterCreator::WriterCreator( KODE::File &file, Schema::Document &document,
-  const QString &dtd )
-  : mFile( file ), mDocument( document ), mDtd( dtd )
+WriterCreator::WriterCreator(KODE::File &file, Schema::Document &document,
+  const QString &dtd , Creator *creator)
+  : mFile( file ), mDocument( document ), mDtd( dtd ), mCreator(creator)
 {
 }
 
@@ -124,7 +124,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
       foreach( Schema::Relation r, element.elementRelations() ) {
         if ( r.isList() ) {
           conditions.append( "!" +
-            Namer::getListAccessor( r.target()) + "().isEmpty()" );
+            Namer::getListMemberVariable(r.target()) + ".isEmpty()" );
         }
       }
       code += "if ( " + conditions.join( " || " ) + " ) {";
@@ -137,11 +137,26 @@ void WriterCreator::createElementWriter( KODE::Class &c,
 
     foreach( Schema::Relation r, element.elementRelations() ) {
       QString type = Namer::getClassName( r.target() );
+      QString memberAccessor = ".";
+      if (mCreator->pointerBasedAccessors()
+          && !ClassProperty::isBasicType(type)
+          && !type.endsWith("Enum")) {
+        type.append("*");
+        memberAccessor = QStringLiteral("->");
+      }
+
       if ( r.isList() ) {
         code += "foreach( " + type + " e, " +
-          Namer::getListAccessor( r.target() ) + "() ) {";
+                Namer::getListMemberVariable(r.target()) + " ) {";
         code.indent();
-        code += "e.writeElement( xml );";
+        if (mCreator->pointerBasedAccessors()) {
+          code.addLine("if (e)");
+          code.indent();
+          code += "e->writeElement( xml );";
+          code.unindent();
+        } else {
+          code += "e.writeElement( xml );";
+        }
         code.unindent();
         code += '}';
       } else {
@@ -160,7 +175,14 @@ void WriterCreator::createElementWriter( KODE::Class &c,
             code += "}";
           }
         } else {
-          code += Namer::getAccessor( r.target() ) + "().writeElement( xml );";
+          if (memberAccessor == "->") {
+            code.addLine("if (" +  Namer::getMemberVariable( r.target() ) + ")");
+            code.indent();
+          }
+          code += Namer::getMemberVariable( r.target() ) + memberAccessor + "writeElement( xml );";
+          if (memberAccessor == "->") {
+            code.unindent();
+          }
         }
       }
     }

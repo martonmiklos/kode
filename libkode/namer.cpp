@@ -142,22 +142,12 @@ QStringList Namer::m_reservedKeywords = QStringList()
                                                        << "xor"
                                                        << "xor_eq";
 
-QString Namer::upperFirst( const QString &str )
-{
-  return KODE::Style::upperFirst( str );
-}
-
-QString Namer::lowerFirst( const QString &str )
-{
-  return KODE::Style::lowerFirst( str );
-}
-
 QString Namer::getClassName( const QString &elementName )
 {
   QString name;
   QStringList parts = removeInvalidCharacters(elementName).split( "_" );
   foreach( QString part, parts ) {
-    name += upperFirst( part );
+    name += KODE::Style::upperFirst( part );
   }
 
   return name;
@@ -165,12 +155,17 @@ QString Namer::getClassName( const QString &elementName )
 
 QString Namer::getAccessor( const QString &elementName )
 {
-  return substituteKeywords( lowerFirst( getClassName( elementName ) ) );
+  return substituteKeywords( KODE::Style::lowerFirst(getClassName( elementName ) ) );
 }
 
-QString Namer::getListAccessor( const QString &elementName )
+QString Namer::getMemberVariable(const QString &memberName)
 {
-  return QString("%1List").arg(lowerFirst(getClassName(elementName)));
+  return "m" + KODE::Style::upperFirst(memberName);
+}
+
+QString Namer::getListMemberVariable(const QString &memberName)
+{
+  return "m" + KODE::Style::upperFirst(memberName) + "List";
 }
 
 QString Namer::getMutator( const QString &elementName )
