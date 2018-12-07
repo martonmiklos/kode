@@ -87,7 +87,13 @@ void WriterCreator::createElementWriter( KODE::Class &c,
   QString tag = element.name();
 
   if ( element.isEmpty() ) {
-    code += "xml.writeEmptyElement( \"" + tag + "\" );";
+    if (element.attributeRelations().isEmpty())
+      code.addLine("xml.writeEmptyElement( \"" + tag + "\" );");
+    else {
+      code.addLine("xml.writeStartElement( \"" + tag + "\" );");
+      code += createAttributeWriter( element );
+      code.addLine("xml.writeEndElement();");
+    }
   } else if ( element.text() ) {
     if ( element.type() == Schema::Element::Date ) {
       code += "if ( value().isValid() ) {";
@@ -226,17 +232,27 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
   KODE::Code code;
 
   foreach( Schema::Relation r, element.attributeRelations() ) {
-    Schema::Attribute a = mDocument.attribute( r );
+    Schema::Attribute a = mDocument.attribute(r, element.name());
 
     QString data = Namer::getAccessor( a.name() ) + "()";
     if ( a.type() != Schema::Node::Enumeration ) {
+      if (a.type() == Schema::Node::String) {
+        code.addLine("if (!" + data + ".isEmpty())");
+        code.indent();
+      }
       code.addLine("xml.writeAttribute(\"" + a.name() + "\", " +
           dataToStringConverter( data, a.type() ) + " );");
+      if (a.type() == Schema::Node::String) {
+        code.unindent();
+      }
     } else if ( a.type() == Schema::Node::Enumeration ) {
-      code.addLine("xml.writeAttribute(\"" + a.name() + "\", " +
+      code.addLine("QString tmp_" + Namer::getAccessor( a.name() ) + " = " +
                    KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString( " +
-                   KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "() "
-                                                                            "));");
+                   KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "());");
+      code.addLine("if (!tmp_" + Namer::getAccessor( a.name() ) + ".isEmpty())");
+      code.indent();
+      code.addLine("xml.writeAttribute(\"" + a.name() + "\", tmp_" + Namer::getAccessor( a.name() ) + ");");
+      code.unindent();
     }
   }
   
