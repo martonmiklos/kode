@@ -89,7 +89,7 @@ class Creator
                         const ClassDescription &d,
                         const QString &type,
                         const QString &name,
-                        ClassProperty::AccessorGeneration generateAccessors);
+                        ClassProperty::MethodGeneration generateAccessors);
 
     ClassDescription createClassDescription(const Schema::Element &element );
     void createClass( const Schema::Element &element );

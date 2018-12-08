@@ -119,7 +119,7 @@ KODE::File &Creator::file()
 void Creator::createProperty(KODE::Class &c,
                               const ClassDescription &d, const QString &type,
                               const QString &name,
-                              ClassProperty::AccessorGeneration generateAccessors)
+                              ClassProperty::MethodGeneration generateMethods)
 {
   if ( type.startsWith( "Q" ) ) {
     c.addHeaderInclude( type );
@@ -142,47 +142,48 @@ void Creator::createProperty(KODE::Class &c,
   KODE::MemberVariable v(memberVariableName, memberType);
   c.addMemberVariable( v );
 
-  if (generateAccessors == ClassProperty::DoNotGenerateAccessors)
-    return;
-
-  KODE::Function mutator( Namer::getMutator( name ), "void" );
-  if ( type == "int" || type == "double" ) {
-    mutator.addArgument( "const " + type + " v" );
-    mutator.addBodyLine(v.name() + "_set = true;");
-  } else {
-    if (propertyIsPointer)
-      mutator.addArgument( type + " *v" );
-    else
-      mutator.addArgument( "const " + type + " &v" );
-  }
-  mutator.addBodyLine( v.name() + " = v;" );
-  if ( mCreateCrudFunctions ) {
-    if ( name != "UpdatedAt" && name != "CreatedAt" ) {
-      if ( d.hasProperty( "UpdatedAt" ) ) {
-        mutator.addBodyLine( "setUpdatedAt( QDateTime::currentDateTime() );" );
+  if (generateMethods & ClassProperty::GenerateMutator) {
+    KODE::Function mutator( Namer::getMutator( name ), "void" );
+    if ( type == "int" || type == "double" ) {
+      mutator.addArgument( "const " + type + " v" );
+      mutator.addBodyLine(v.name() + "_set = true;");
+    } else {
+      if (propertyIsPointer)
+        mutator.addArgument( type + " *v" );
+      else
+        mutator.addArgument( "const " + type + " &v" );
+    }
+    mutator.addBodyLine( v.name() + " = v;" );
+    if ( mCreateCrudFunctions ) {
+      if ( name != "UpdatedAt" && name != "CreatedAt" ) {
+        if ( d.hasProperty( "UpdatedAt" ) ) {
+          mutator.addBodyLine( "setUpdatedAt( QDateTime::currentDateTime() );" );
+        }
       }
     }
-  }
-  c.addFunction( mutator );
-
-  QString accessorType = type;
-  if (propertyIsPointer || (mPointerBasedAccessors && type.endsWith("List")))
-    accessorType.append("*");
-
-  KODE::Function accessor( Namer::getAccessor( name ), accessorType );
-  if (!propertyIsPointer
-      && !(mPointerBasedAccessors && type.endsWith("List")))
-    accessor.setConst( true );
-
-  if ( type.right(4) == "Enum" ) {
-    accessor.setReturnType( c.name() + "::" + type );
+    c.addFunction( mutator );
   }
 
-  if (mPointerBasedAccessors && type.endsWith("List"))
-    accessor.addBodyLine( "return &" + v.name() + ';' );
-  else
-    accessor.addBodyLine( "return " + v.name() + ';' );
-  c.addFunction( accessor );
+  if (generateMethods & ClassProperty::GenerateAccessor) {
+    QString accessorType = type;
+    if (propertyIsPointer || (mPointerBasedAccessors && type.endsWith("List")))
+      accessorType.append("*");
+
+    KODE::Function accessor( Namer::getAccessor( name ), accessorType );
+    if (!propertyIsPointer
+        && !(mPointerBasedAccessors && type.endsWith("List")))
+      accessor.setConst( true );
+
+    if ( type.right(4) == "Enum" ) {
+      accessor.setReturnType( c.name() + "::" + type );
+    }
+
+    if (mPointerBasedAccessors && type.endsWith("List"))
+      accessor.addBodyLine( "return &" + v.name() + ';' );
+    else
+      accessor.addBodyLine( "return " + v.name() + ';' );
+    c.addFunction( accessor );
+  }
 }
 
 void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
@@ -281,7 +282,7 @@ ClassDescription Creator::createClassDescription(const Schema::Element &element)
             )) {
         description.addProperty("bool",
                                 Namer::getClassName(a.name()) + "_set",
-                                ClassProperty::DoNotGenerateAccessors);
+                                ClassProperty::GenerateAccessor);
       }
     }
   }
