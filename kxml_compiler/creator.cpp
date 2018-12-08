@@ -388,6 +388,12 @@ void Creator::createClass( const Schema::Element &element )
         KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
         constructorCode.addLine( v.name() + " = nullptr;");
       }
+
+      // initialize enums to invalid
+      if (p.type().endsWith("Enum")) {
+        KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
+        constructorCode.addLine( v.name() + " = " + p.type().left(p.type().length() - 4) + "_Invalid;");
+      }
     }
 
     constructor.setBody( constructorCode );

@@ -246,12 +246,13 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
         code.unindent();
       }
     } else if ( a.type() == Schema::Node::Enumeration ) {
-      code.addLine("QString tmp_" + Namer::getAccessor( a.name() ) + " = " +
-                   KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString( " +
-                   KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "());");
-      code.addLine("if (!tmp_" + Namer::getAccessor( a.name() ) + ".isEmpty())");
+      code.addLine("if (" + Namer::getMemberVariable( Namer::getClassName(a.name()) ) + " != "
+                   + Namer::getClassName(a.name())
+                   + "_Invalid)");
       code.indent();
-      code.addLine("xml.writeAttribute(\"" + a.name() + "\", tmp_" + Namer::getAccessor( a.name() ) + ");");
+      code.addLine("xml.writeAttribute(\"" + a.name() + "\", " +
+                   KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString(" +
+                   Namer::getMemberVariable(Namer::getClassName(a.name())) + "));");
       code.unindent();
     }
   }
