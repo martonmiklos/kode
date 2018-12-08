@@ -31,8 +31,12 @@ class ClassProperty
 {
   public:
     typedef QList<ClassProperty> List;
+    enum AccessorGeneration {
+      GenerateAccessors,
+      DoNotGenerateAccessors
+    };
 
-    ClassProperty( const QString &type, const QString &name );
+    ClassProperty(const QString &type, const QString &name, AccessorGeneration accessorGeneration = GenerateAccessors);
 
     QString type() const;
     QString name() const;
@@ -46,12 +50,15 @@ class ClassProperty
     bool isBasicType() const;
     static bool isBasicType(const QString type);
 
+    AccessorGeneration accessorGeneration() const;
+
 private:
     QString m_type;
     QString m_name;
 
     bool m_isList;
     bool m_targetHasId;
+    AccessorGeneration m_accessorGeneration;
 };
 
 class ClassDescription
@@ -62,7 +69,9 @@ class ClassDescription
     QString name() const;
 
     void addProperty( const ClassProperty & );
-    void addProperty( const QString &type, const QString &name );
+    void addProperty(const QString &type,
+                     const QString &name,
+                     ClassProperty::AccessorGeneration accessorGeneration = ClassProperty::GenerateAccessors);
 
     ClassProperty::List properties() const;
 

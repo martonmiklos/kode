@@ -21,8 +21,12 @@
 
 #include "classdescription.h"
 
-ClassProperty::ClassProperty( const QString &type, const QString &name )
-  : m_type( type ), m_name( name ), m_isList( false ), m_targetHasId( false )
+ClassProperty::ClassProperty( const QString &type, const QString &name, AccessorGeneration accessorGeneration)
+  : m_type( type ),
+    m_name( name ),
+    m_isList( false ),
+    m_targetHasId( false ),
+    m_accessorGeneration(accessorGeneration)
 {
 }
 
@@ -70,6 +74,11 @@ bool ClassProperty::isBasicType(const QString type)
       || type == "QDate";
 }
 
+ClassProperty::AccessorGeneration ClassProperty::accessorGeneration() const
+{
+  return m_accessorGeneration;
+}
+
 ClassDescription::ClassDescription( const QString &name )
   : m_name( name )
 {
@@ -80,9 +89,11 @@ QString ClassDescription::name() const
   return m_name;
 }
 
-void ClassDescription::addProperty( const QString &type, const QString &name )
+void ClassDescription::addProperty(const QString &type,
+                                   const QString &name,
+                                   ClassProperty::AccessorGeneration accessorGeneration)
 {
-  m_properties.append( ClassProperty( type, name ) );
+  m_properties.append(ClassProperty(type, name, accessorGeneration));
 }
 
 void ClassDescription::addProperty( const ClassProperty &p )

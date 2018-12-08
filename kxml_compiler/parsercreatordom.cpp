@@ -187,15 +187,26 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
         code.unindent();
         code += "} else {";
         code.indent();
-        code += "result" + memberAccessor + "set" + Namer::getClassName(a.name()) + "(" + KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumFromString(\""+a.defaultValue()+"\"));";
+        code += "result" + memberAccessor
+                + "set" + Namer::getClassName(a.name()) + "("
+                + Namer::getClassName(a.name()) + "_Invalid);";
         code.unindent();
         code += "}";
       }
     } else {
       QString data = stringToDataConverter( "element.attribute( \"" + a.name() + "\" )", a.type() );
 
+      if (a.type() == Schema::Attribute::Integer
+          || a.type() == Schema::Attribute::Decimal) {
+        code.addLine("if (element.hasAttribute(\""+a.name()+"\"))");
+        code.indent();
+      }
       code += "result" + memberAccessor + "set" + Namer::getClassName( a.name() ) +
               "( " + data + " );";
+      if (a.type() == Schema::Attribute::Integer
+          || a.type() == Schema::Attribute::Decimal) {
+        code.unindent();
+      }
     }
   }
   code.newLine();

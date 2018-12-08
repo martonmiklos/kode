@@ -234,15 +234,24 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
   foreach( Schema::Relation r, element.attributeRelations() ) {
     Schema::Attribute a = mDocument.attribute(r, element.name());
 
-    QString data = Namer::getAccessor( a.name() ) + "()";
+    QString variableName = Namer::getMemberVariable(Namer::getClassName(a.name()));
     if ( a.type() != Schema::Node::Enumeration ) {
       if (a.type() == Schema::Node::String) {
-        code.addLine("if (!" + data + ".isEmpty())");
+        code.addLine("if (!" + variableName + ".isEmpty())");
         code.indent();
       }
+
+      if (a.type() == Schema::Node::Integer
+          || a.type() == Schema::Node::Decimal) {
+        code.addLine("if (" + variableName + "_set)");
+        code.indent();
+      }
+
       code.addLine("xml.writeAttribute(\"" + a.name() + "\", " +
-          dataToStringConverter( data, a.type() ) + " );");
-      if (a.type() == Schema::Node::String) {
+          dataToStringConverter( variableName, a.type() ) + " );");
+      if (a.type() == Schema::Node::String
+          || a.type() == Schema::Node::Integer
+          || a.type() == Schema::Node::Decimal) {
         code.unindent();
       }
     } else if ( a.type() == Schema::Node::Enumeration ) {

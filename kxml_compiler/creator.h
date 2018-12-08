@@ -85,10 +85,13 @@ class Creator
     void create();
 
     void createCrudFunctions( KODE::Class &c, const QString &type );
-    void createProperty(KODE::Class &c, const ClassDescription &,
-      const QString &type, const QString &name );
+    void createProperty(KODE::Class &c,
+                        const ClassDescription &d,
+                        const QString &type,
+                        const QString &name,
+                        ClassProperty::AccessorGeneration generateAccessors);
 
-    ClassDescription createClassDescription( const Schema::Element &element );
+    ClassDescription createClassDescription(const Schema::Element &element );
     void createClass( const Schema::Element &element );
 
     void registerListTypedef( const QString &type );

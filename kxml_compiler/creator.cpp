@@ -116,9 +116,10 @@ KODE::File &Creator::file()
   return mFile;
 }
 
-void Creator::createProperty( KODE::Class &c,
-                              const ClassDescription &description, const QString &type,
-                              const QString &name)
+void Creator::createProperty(KODE::Class &c,
+                              const ClassDescription &d, const QString &type,
+                              const QString &name,
+                              ClassProperty::AccessorGeneration generateAccessors)
 {
   if ( type.startsWith( "Q" ) ) {
     c.addHeaderInclude( type );
@@ -131,13 +132,23 @@ void Creator::createProperty( KODE::Class &c,
   QString memberType = type;
   if (propertyIsPointer)
     memberType.append("*");
-
-  KODE::MemberVariable v(Namer::getClassName( name ), memberType);
+  QString memberVariableName = name;
+  if (name.endsWith("_set")) {
+    memberVariableName = memberVariableName.left(name.length() - 4);
+    memberVariableName = Namer::getClassName(memberVariableName) + "_set";
+  } else {
+    memberVariableName = Namer::getClassName(name);
+  }
+  KODE::MemberVariable v(memberVariableName, memberType);
   c.addMemberVariable( v );
+
+  if (generateAccessors == ClassProperty::DoNotGenerateAccessors)
+    return;
 
   KODE::Function mutator( Namer::getMutator( name ), "void" );
   if ( type == "int" || type == "double" ) {
     mutator.addArgument( "const " + type + " v" );
+    mutator.addBodyLine(v.name() + "_set = true;");
   } else {
     if (propertyIsPointer)
       mutator.addArgument( type + " *v" );
@@ -147,7 +158,7 @@ void Creator::createProperty( KODE::Class &c,
   mutator.addBodyLine( v.name() + " = v;" );
   if ( mCreateCrudFunctions ) {
     if ( name != "UpdatedAt" && name != "CreatedAt" ) {
-      if ( description.hasProperty( "UpdatedAt" ) ) {
+      if ( d.hasProperty( "UpdatedAt" ) ) {
         mutator.addBodyLine( "setUpdatedAt( QDateTime::currentDateTime() );" );
       }
     }
@@ -248,8 +259,7 @@ void Creator::createCrudFunctions( KODE::Class &c, const QString &type )
 }
 
 
-ClassDescription Creator::createClassDescription(
-    const Schema::Element &element )
+ClassDescription Creator::createClassDescription(const Schema::Element &element)
 {
   ClassDescription description( Namer::getClassName( element.name() ) );
 
@@ -264,6 +274,15 @@ ClassDescription Creator::createClassDescription(
     } else {
       description.addProperty( typeName( a.type() ),
                                Namer::getClassName( a.name() ) );
+      if (mPointerBasedAccessors
+          && (
+             a.type() == Schema::Element::Integer
+          || a.type() == Schema::Element::Decimal
+            )) {
+        description.addProperty("bool",
+                                Namer::getClassName(a.name()) + "_set",
+                                ClassProperty::DoNotGenerateAccessors);
+      }
     }
   }
 
@@ -337,9 +356,8 @@ void Creator::createClass( const Schema::Element &element )
 
   mProcessedClasses.append( className );
 
-  ClassDescription description = createClassDescription( element );
-
   KODE::Class c( className );
+  ClassDescription description = createClassDescription(element);
 
   if ( !mExportDeclaration.isEmpty() ) {
     c.setExportDeclaration( mExportDeclaration );
@@ -394,6 +412,11 @@ void Creator::createClass( const Schema::Element &element )
         KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
         constructorCode.addLine( v.name() + " = " + p.type().left(p.type().length() - 4) + "_Invalid;");
       }
+
+      if (p.name().endsWith("_set")) {
+        KODE::MemberVariable v(p.name(), p.type());
+        constructorCode.addLine(v.name() + " = false;");
+      }
     }
 
     constructor.setBody( constructorCode );
@@ -429,13 +452,13 @@ void Creator::createClass( const Schema::Element &element )
 
       c.addFunction( adder );
 
-      createProperty( c, description, p.type() + "::List", listName);
+      createProperty(c, description, p.type() + "::List", listName, p.accessorGeneration());
 
       if ( mCreateCrudFunctions && p.targetHasId() ) {
         createCrudFunctions( c, p.type() );
       }
     } else {
-      createProperty( c, description, p.type(), p.name());
+      createProperty(c, description, p.type(), p.name(), p.accessorGeneration());
     }
   }
 
