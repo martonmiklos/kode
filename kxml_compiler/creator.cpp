@@ -399,20 +399,29 @@ void Creator::createClass( const Schema::Element &element )
     // add constructor and desctructor if pointer based acces is present
     KODE::Function constructor(c.name());
     foreach(ClassProperty p, description.properties()) {
+      KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
       if (mPointerBasedAccessors
           && !p.isBasicType()
           && !p.isList()
           && !p.type().endsWith("Enum"))  {
-        // TODO move them to the initializer list
-        KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
+        // TODO move them to the initializer list, or if C++11 support will be
+        // implemented to the header
         constructorCode.addLine( v.name() + " = nullptr;");
       }
 
       // initialize enums to invalid
       if (p.type().endsWith("Enum")) {
-        KODE::MemberVariable v(Namer::getClassName( p.name() ), p.type());
         constructorCode.addLine( v.name() + " = " + p.type().left(p.type().length() - 4) + "_Invalid;");
       }
+
+      // TODO move them to the initializer list, or if C++11 support will be
+      // implemented to the header
+      if (p.type() == "int")
+        constructorCode.addLine( v.name() + " = 0;");
+      if (p.type() == "double")
+        constructorCode.addLine( v.name() + " = 0.0;");
+      if (p.type() == "bool")
+        constructorCode.addLine( v.name() + " = false;");
 
       if (p.name().endsWith("_set")) {
         KODE::MemberVariable v(p.name(), p.type());
