@@ -167,7 +167,7 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
       }
       code += Namer::getClassName(a.name()) + "Enum" + " " + enumName+ " = " +
               KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumFromString( element.attribute( \"" + a.name() + "\" ), ok  );";
-      code += "if (ok && *ok == false) {";
+      code += "if (ok && !(*ok)) {";
       code.indent();
       code += "qCritical() << \"Invalid string: \\\"\" << element.attribute( \"" + a.name() + "\" ) << \"\\\" in the \\\"" + a.name() + "\\\" element\";";
       if (creator()->pointerBasedAccessors()
