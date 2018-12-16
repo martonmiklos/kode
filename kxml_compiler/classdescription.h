@@ -53,7 +53,6 @@ class ClassProperty
     static bool isBasicType(const QString type);
 
     MethodGeneration accessorGeneration() const;
-
 private:
     QString m_type;
     QString m_name;
