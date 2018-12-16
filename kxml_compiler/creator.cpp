@@ -420,12 +420,13 @@ void Creator::createClass( const Schema::Element &element )
         constructorCode.addLine( v.name() + " = 0;");
       if (p.type() == "double")
         constructorCode.addLine( v.name() + " = 0.0;");
-      if (p.type() == "bool")
-        constructorCode.addLine( v.name() + " = false;");
-
-      if (p.name().endsWith("_set")) {
-        KODE::MemberVariable v(p.name(), p.type());
-        constructorCode.addLine(v.name() + " = false;");
+      if (p.type() == "bool") {
+        if (p.name().endsWith("_set")) {
+          KODE::MemberVariable vs(p.name(), p.type());
+          constructorCode.addLine(vs.name() + " = false;");
+        } else {
+          constructorCode.addLine( v.name() + " = false;");
+        }
       }
     }
 
