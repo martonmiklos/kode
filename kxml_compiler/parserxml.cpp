@@ -27,7 +27,7 @@
 
 #include <QDebug>
 #include <QXmlStreamReader>
-#include <math.h>
+#include <cmath>
 
 using namespace KXML;
 

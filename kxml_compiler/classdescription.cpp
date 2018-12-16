@@ -65,7 +65,7 @@ bool ClassProperty::isBasicType() const
   return isBasicType(m_type);
 }
 
-bool ClassProperty::isBasicType(const QString type)
+bool ClassProperty::isBasicType(const QString & type)
 {
   return type == "int"
       || type == "double"

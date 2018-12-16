@@ -58,9 +58,8 @@ Schema::Document ParserXsd::parse( const QString &data )
   if ( !parser.parseString( &context, data ) ) {
     qDebug() << "Error parsing data.";
     return Schema::Document();
-  } else {
-    return parse( parser );
   }
+  return parse(parser);
 }
 
 Schema::Document ParserXsd::parse( QFile &file )
@@ -80,9 +79,8 @@ Schema::Document ParserXsd::parse( QFile &file )
     qDebug() << "Error parsing file " << file.fileName();
 
     return Schema::Document();
-  } else {
-    return parse( parser );
   }
+  return parse(parser);
 }
 
 Schema::Document ParserXsd::parse( const XSD::Parser &parser )

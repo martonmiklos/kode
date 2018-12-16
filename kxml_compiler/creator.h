@@ -133,10 +133,10 @@ protected:
 
     QString mBaseName;
     QString mDtd;
-    bool mVerbose;
-    bool mUseKde;
-    bool mCreateCrudFunctions;
-    bool mPointerBasedAccessors;
+    bool mVerbose = false;
+    bool mUseKde = false;
+    bool mCreateCrudFunctions = false;
+    bool mPointerBasedAccessors = false;
     QString mExportDeclaration;
 };
 

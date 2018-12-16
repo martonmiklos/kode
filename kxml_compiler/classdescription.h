@@ -50,7 +50,7 @@ class ClassProperty
     bool targetHasId() const;
 
     bool isBasicType() const;
-    static bool isBasicType(const QString type);
+    static bool isBasicType(const QString & type);
 
     MethodGeneration accessorGeneration() const;
 private:

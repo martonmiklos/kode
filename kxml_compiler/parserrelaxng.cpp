@@ -74,7 +74,7 @@ void ParserRelaxng::setVerbose( bool verbose )
 
 Element *ParserRelaxng::parse( const QDomElement &docElement )
 {
-  Element *start = 0;
+  Element *start = nullptr;
 
   QDomNode n1;
   QDomElement e1;

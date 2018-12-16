@@ -103,9 +103,8 @@ bool Document::addUsedElement( const Element &element ) const
   if ( !found ) {
     mUsedElements.prepend( element );
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
 void Document::addAttribute( const Attribute &a )
@@ -130,12 +129,8 @@ Attribute Document::attribute(const QString &identifier , const QString &element
 {
   foreach( Attribute a, mAttributes ) {
     if ( a.identifier() == identifier ) {
-      if (elementName.isEmpty())
+      if (elementName.isEmpty() || a.elementName() == elementName)
         return a;
-      else {
-        if (a.elementName() == elementName)
-          return a;
-      }
     }
   }
   return Attribute();

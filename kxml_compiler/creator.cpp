@@ -60,8 +60,7 @@ bool Creator::ClassFlags::hasId() const
 
 
 Creator::Creator( const Schema::Document &document, XmlParserType p )
-  : mDocument( document ), mXmlParserType( p ),
-    mVerbose( false ), mUseKde( false )
+  : mDocument( document ), mXmlParserType( p )
 {
   setExternalClassNames();
 }
@@ -487,22 +486,14 @@ void Creator::createClass( const Schema::Element &element )
 
 void Creator::createElementParser( KODE::Class &c, const Schema::Element &e )
 {
-  ParserCreator *parserCreator = 0;
-
-  switch ( mXmlParserType ) {
+  switch (mXmlParserType) {
   case XmlParserDom:
-  case XmlParserDomExternal:
-    parserCreator = new ParserCreatorDom( this );
-    break;
+  case XmlParserDomExternal: {
+    ParserCreator * parserCreator = new ParserCreatorDom( this );
+    parserCreator->createElementParser(c, e);
+    delete parserCreator;
+  } break;
   }
-
-  if ( parserCreator == 0 ) {
-    return;
-  }
-
-  parserCreator->createElementParser( c, e );
-
-  delete parserCreator;
 }
 
 void Creator::registerListTypedef( const QString &type )
@@ -650,19 +641,17 @@ void Creator::setFilename( const QString& baseName )
 
 QString Creator::typeName( Schema::Node::Type type )
 {
-  if ( type == Schema::Element::DateTime ) {
+  if (type == Schema::Element::DateTime)
     return "QDateTime";
-  } else if ( type == Schema::Element::Date ) {
+  else if (type == Schema::Element::Date)
     return "QDate";
-  } else if ( type == Schema::Element::Integer ) {
+  else if (type == Schema::Element::Integer)
     return "int";
-  } else if ( type == Schema::Element::Decimal ) {
+  else if (type == Schema::Element::Decimal)
     return "double";
-  } else if ( type == Schema::Element::Boolean ) {
+  else if (type == Schema::Element::Boolean)
     return "bool";
-  } else {
-    return "QString";
-  }
+  return "QString";
 }
 
 bool Creator::pointerBasedAccessors() const
