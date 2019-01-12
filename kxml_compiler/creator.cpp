@@ -403,28 +403,28 @@ void Creator::createClass( const Schema::Element &element )
           && !p.isBasicType()
           && !p.isList()
           && !p.type().endsWith("Enum"))  {
-        // TODO move them to the initializer list, or if C++11 support will be
-        // implemented to the header
-        constructorCode.addLine( v.name() + " = nullptr;");
+        // TODO move them to header if C++11 support will be implemented
+        constructor.addInitializer(QString("%1(nullptr)").arg(v.name()));
       }
 
       // initialize enums to invalid
       if (p.type().endsWith("Enum")) {
-        constructorCode.addLine( v.name() + " = " + p.type().left(p.type().length() - 4) + "_Invalid;");
+        constructor.addInitializer(QString("%1(%2_Invalid)")
+                                   .arg(v.name())
+                                   .arg(p.type().left(p.type().length() - 4)));
       }
 
-      // TODO move them to the initializer list, or if C++11 support will be
-      // implemented to the header
+      // TODO move them to header if C++11 support will be implemented
       if (p.type() == "int")
-        constructorCode.addLine( v.name() + " = 0;");
+        constructor.addInitializer(QString("%1(0)").arg(v.name()));
       if (p.type() == "double")
-        constructorCode.addLine( v.name() + " = 0.0;");
+        constructor.addInitializer(QString("%1(0.0)").arg(v.name()));
       if (p.type() == "bool") {
         if (p.name().endsWith("_set")) {
           KODE::MemberVariable vs(p.name(), p.type());
-          constructorCode.addLine(vs.name() + " = false;");
+          constructor.addInitializer(QString("%1(false)").arg(vs.name()));
         } else {
-          constructorCode.addLine( v.name() + " = false;");
+          constructor.addInitializer(QString("%1(false)").arg(v.name()));
         }
       }
     }
