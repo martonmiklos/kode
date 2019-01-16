@@ -113,6 +113,8 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
         e.setBaseType( Schema::Node::Boolean );
       } else if ( complexType.baseTypeName().qname() == "xs:normalizedString" ) {
         e.setBaseType( Schema::Node::NormalizedString );
+      } else if ( complexType.baseTypeName().qname() == "xs:base64Binary" ) {
+        e.setBaseType( Schema::Node::Base64Binary );
       } else if ( complexType.baseTypeName().qname() == "xs:token" ) {
         e.setBaseType( Schema::Node::Token );
       }
@@ -124,6 +126,8 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
       e.setType( Schema::Node::Boolean );
     } else if ( element.type().qname() == "xs:normalizedString" ) {
       e.setType( Schema::Node::NormalizedString );
+    } else if ( complexType.baseTypeName().qname() == "xs:base64Binary" ) {
+      e.setBaseType( Schema::Node::Base64Binary );
     } else if ( element.type().qname() == "xs:token" ) {
       e.setType( Schema::Node::Token );
     } else {
@@ -183,6 +187,8 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
           a.setType( Schema::Node::Boolean );
         } else if ( attribute.type().qname() == "xs:date" ) {
           a.setType( Schema::Node::Date );
+        } else if ( attribute.type().qname() == "xs:base64Binary") {
+          a.setType( Schema::Node::Base64Binary );
         } else {
           QName name = attribute.type();
           XSD::SimpleType simpleType = types.simpleType( name, element.name() );
