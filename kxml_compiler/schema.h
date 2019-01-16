@@ -177,8 +177,12 @@ class KSCHEMA_EXPORT Element : public Node
 
     bool isEmpty() const;
 
-  private:
+    bool simplify() const;
+    void setSimplify(bool simplify);
+
+private:
     bool mText;
+    bool mSimplify = false;
 
     Relation::List mElementRelations;
     Relation::List mAttributeRelations;

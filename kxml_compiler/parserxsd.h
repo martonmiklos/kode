@@ -40,7 +40,10 @@ class KSCHEMA_EXPORT ParserXsd
     Schema::Document parse( const QString & );
     void setVerbose( bool verbose );
 
-  protected:
+    bool simplifySingleChildLists() const;
+    void setSimplifySingleChildLists(bool simplifySingleChildLists);
+
+protected:
     Schema::Document parse( const XSD::Parser &parser );
 
     void setType( Schema::Node &node, const XSD::SimpleType &simpleType );
@@ -51,6 +54,7 @@ class KSCHEMA_EXPORT ParserXsd
   private:
     Schema::Document mDocument;
     bool mVerbose;
+    bool mSimplifySingleChildLists = false;
 };
 
 }

@@ -103,20 +103,37 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
         QString data = stringToDataConverter( "e.text()", targetElement.type() );
         code += "result.set" + className + "( " + data + " );";
       } else {
-        code += "bool ok;";
-        QString line = className + " o = ";
-        if ( creator()->externalParser() ) {
-          line += "parseElement" + className;
+        if (targetElement.simplify()) {
+          QString childClassName = Namer::getClassName( targetElement.elementRelations().first().target() );
+          code += "QDomNode nc;";
+          code += "for( nc = e.firstChild(); !nc.isNull(); nc = n.nextSibling() ) {";
+          code.indent();
+          code.addLine("QDomElement ec = nc.toElement();");
+          code.addLine(QString("if (ec.tagName() == \"%1\") {").arg(targetElement.elementRelations().first().target()));
+          code.indent();
+          code.addLine("bool okc;");
+          code.addLine("Symbol o = Symbol::parseElement( e, &okc );");
+          code.addLine("if ( okc ) result.add" + childClassName + "( o );");
+          code.unindent();
+          code.addLine("}");
+          code.unindent();
+          code.addLine("}");
         } else {
-          line += className + "::parseElement";
-        }
-        line += "( e, &ok );";
-        code += line;
+          code += "bool ok;";
+          QString line = className + " o = ";
+          if ( creator()->externalParser() ) {
+            line += "parseElement" + className;
+          } else {
+            line += className + "::parseElement";
+          }
+          line += "( e, &ok );";
+          code += line;
 
-        if ( (*it).isList() ) {
-          code += "if ( ok ) result.add" + className + "( o );";
-        } else {
-          code += "if ( ok ) result.set" + className + "( o );";
+          if ( (*it).isList() ) {
+            code += "if ( ok ) result.add" + className + "( o );";
+          } else {
+            code += "if ( ok ) result.set" + className + "( o );";
+          }
         }
       }
 

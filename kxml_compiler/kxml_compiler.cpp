@@ -121,6 +121,17 @@ int main( int argc, char **argv )
               QCoreApplication::translate("main", "Create functions for dealing with data suitable for CRUD model"));
   cmdLine.addOption(createCRUDFunctionsOption);
 
+  QCommandLineOption simplifySingleSequenceChildElements(
+              "simplify-single-sequence-child-elements",
+              QCoreApplication::translate("main",
+                                          "If this option is set no classes will be generated for XSD elements\n"
+                                          "containing a single sequence type child, but in place parser/generator\n"
+                                          "code will be generated where they utilized. (This simplifies the\n"
+                                          "generated class structure). If the element has any attribute or\n"
+                                          "more than one child a separate class will be generated.\n"
+                                          "This option can be only used wwhen parsing XSD files.\n"));
+  cmdLine.addOption(simplifySingleSequenceChildElements);
+
   if (!cmdLine.parse(QCoreApplication::arguments())) {
     qDebug() << cmdLine.errorText();
     return -1;
@@ -156,7 +167,7 @@ int main( int argc, char **argv )
   if ( cmdLine.isSet( xsdOption ) || fi.suffix() == "xsd" ) {
     RNG::ParserXsd p;
     p.setVerbose( cmdLine.isSet(verboseOption) );
-
+    p.setSimplifySingleChildLists(cmdLine.isSet(simplifySingleSequenceChildElements));
     schemaDocument = p.parse( schemaFile );
 
     if ( schemaDocument.isEmpty() ) {
@@ -164,6 +175,10 @@ int main( int argc, char **argv )
       return 1;
     }
   } else if ( cmdLine.isSet( rngOption ) || fi.suffix() == "rng" ) {
+    if (cmdLine.isSet(simplifySingleSequenceChildElements)) {
+      qDebug() <<"simplify-single-sequence-child-elements argument can be only used when parsing XSD files";
+      return 1;
+    }
     QString errorMsg;
     int errorLine, errorCol;
     QDomDocument doc;
@@ -197,6 +212,10 @@ int main( int argc, char **argv )
 
     schemaDocument = p.convertToSchema( start );
   } else if ( cmdLine.isSet( "xml" ) || fi.suffix() == "xml" ) {
+    if (cmdLine.isSet(simplifySingleSequenceChildElements)) {
+      qDebug() <<"simplify-single-sequence-child-elements argument can be only used when parsing XSD files";
+      return 1;
+    }
     ParserXml schemaParser;
     schemaParser.setVerbose( verbose );
     schemaDocument = schemaParser.parse( schemaFile );

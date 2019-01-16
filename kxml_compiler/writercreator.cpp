@@ -160,7 +160,18 @@ void WriterCreator::createElementWriter( KODE::Class &c,
             code += "}";
           }
         } else {
-          code += Namer::getAccessor( r.target() ) + "().writeElement( xml );";
+          if (e.simplify()) {
+            QString childClassName = Namer::getClassName(e.elementRelations().first().target());
+            code += "xml.writeStartElement( \"" + e.name() + "\" );";
+            code += "foreach(" + childClassName + " e, m" + Namer::getClassName(e.name()) + "List ) {";
+            code.indent();
+            code += "e.writeElement( xml );";
+            code.unindent();
+            code += "}";
+            code += "xml.writeEndElement();";
+          } else {
+            code += Namer::getAccessor( r.target() ) + "().writeElement( xml );";
+          }
         }
       }
     }

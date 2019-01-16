@@ -196,6 +196,13 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
       mDocument.addAttribute( a );
     }
 
+    if (mSimplifySingleChildLists
+        && complexType.attributes().count() == 0
+        && complexType.elements().count() == 1
+        && complexType.elements().first().maxOccurs() == XSD::Parser::UNBOUNDED) {
+      e.setSimplify(true);
+    }
+
     setAnnotations( e, element.annotations() );
 
     mDocument.addElement( e );
@@ -229,6 +236,16 @@ void ParserXsd::setAnnotations( Schema::Annotatable &annotatable,
   }
   annotatable.setDocumentation( documentation );
   annotatable.setAnnotations( domElements );
+}
+
+bool ParserXsd::simplifySingleChildLists() const
+{
+  return mSimplifySingleChildLists;
+}
+
+void ParserXsd::setSimplifySingleChildLists(bool simplifySingleChildLists)
+{
+  mSimplifySingleChildLists = simplifySingleChildLists;
 }
 
 void ParserXsd::setType( Schema::Node &node, const XSD::SimpleType &simpleType )

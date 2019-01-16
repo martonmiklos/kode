@@ -445,6 +445,16 @@ bool Element::isEmpty() const
   return !mText && mElementRelations.isEmpty();
 }
 
+bool Element::simplify() const
+{
+  return mSimplify;
+}
+
+void Element::setSimplify(bool simplify)
+{
+  mSimplify = simplify;
+}
+
 Attribute::Attribute()
 {
 }

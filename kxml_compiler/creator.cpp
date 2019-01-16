@@ -289,7 +289,14 @@ ClassDescription Creator::createClassDescription(
 
         description.addProperty( p );
       } else {
-        description.addProperty( targetClassName, Namer::getClassName( name ) );
+        if (targetElement.simplify()) {
+          QString targetClassName = Namer::getClassName( targetElement.elementRelations().first().target() );
+          ClassProperty p( targetClassName, Namer::getClassName( name ) );
+          p.setIsList( true );
+          description.addProperty( p );
+        } else {
+          description.addProperty( targetClassName, Namer::getClassName( name ) );
+        }
       }
     }
   }
@@ -315,6 +322,9 @@ void Creator::createClass( const Schema::Element &element )
   }
 
   mProcessedClasses.append( className );
+
+  if (element.simplify())
+    return;
 
   ClassDescription description = createClassDescription( element );
 
