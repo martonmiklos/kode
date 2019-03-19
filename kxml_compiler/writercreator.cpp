@@ -91,7 +91,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
       code.addLine("xml.writeEmptyElement( \"" + tag + "\" );");
     else {
       code.addLine("xml.writeStartElement( \"" + tag + "\" );");
-      code += createAttributeWriter( element );
+      createAttributeWriter( element, code );
       code.addLine("xml.writeEndElement();");
     }
   } else if ( element.text() ) {
@@ -100,13 +100,15 @@ void WriterCreator::createElementWriter( KODE::Class &c,
     } else {
       code += "if ( !value().isEmpty() ) {";
     }
-    code += "  xml.writeStartElement( \"" + tag + "\" );";
+    code.indent();
+    code += "xml.writeStartElement( \"" + tag + "\" );";
     
-    code += createAttributeWriter( element );
+    createAttributeWriter( element, code );
 
     QString data = dataToStringConverter( "value()", element.type() );
-    code += "  xml.writeCharacters( " + data + " );";
-    code += "  xml.writeEndElement();";
+    code += "xml.writeCharacters( " + data + " );";
+    code += "xml.writeEndElement();";
+    code.unindent();
     code += "}";
   } else {
     bool pureList = true;
@@ -139,7 +141,7 @@ void WriterCreator::createElementWriter( KODE::Class &c,
     
     code += "xml.writeStartElement( \"" + tag + "\" );";
 
-    code += createAttributeWriter( element );
+    createAttributeWriter( element, code );
 
     foreach( Schema::Relation r, element.elementRelations() ) {
       QString type = Namer::getClassName( r.target() );
@@ -227,10 +229,8 @@ QString WriterCreator::dataToStringConverter( const QString &data,
   return converter;
 }
 
-KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element )
+void WriterCreator::createAttributeWriter( const Schema::Element &element, KODE::Code & code )
 {
-  KODE::Code code;
-
   foreach( Schema::Relation r, element.attributeRelations() ) {
     Schema::Attribute a = mDocument.attribute(r, element.name());
 
@@ -265,6 +265,4 @@ KODE::Code WriterCreator::createAttributeWriter( const Schema::Element &element 
       code.unindent();
     }
   }
-  
-  return code;
 }
