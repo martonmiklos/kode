@@ -363,9 +363,13 @@ QString Printer::Private::classImplementation( const Class &classObject, bool ne
     if ( f.virtualMode() == Function::PureVirtual && f.body().isEmpty() )
       continue;
 
-    code += mParent->functionSignature( f, functionClassName, true );
-
+    QString fnSignature = mParent->functionSignature( f, functionClassName, true );
     QStringList inits = f.initializers();
+    if (inits.length())
+      fnSignature.append(" :");
+
+    code += fnSignature;
+
     if ( classObject.useDPointer() && !classObject.memberVariables().isEmpty() &&
          f.name() == classObject.name() ) {
       inits.append( classObject.dPointerName() + "(new PrivateDPtr)" );
@@ -383,7 +387,13 @@ QString Printer::Private::classImplementation( const Class &classObject, bool ne
 
     if (!inits.isEmpty()) {
       code.indent();
-      code += ": " + inits.join( ", " );
+      bool first = true;
+      foreach (QString init, inits) {
+        if (!first)
+          init.append(',');
+        code.addLine(init);
+        first = false;
+      }
       code.unindent();
     }
 
