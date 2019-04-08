@@ -187,9 +187,16 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
         code.unindent();
         code += "} else {";
         code.indent();
-        code += "result" + memberAccessor
-                + "set" + Namer::getClassName(a.name()) + "("
-                + Namer::getClassName(a.name()) + "_Invalid);";
+        if (a.defaultValue().isEmpty()) {
+          code += "result" + memberAccessor
+                  + "set" + Namer::getClassName(a.name()) + "("
+                  + Namer::getClassName(a.name()) + "_Invalid);";
+        } else {
+          code += "// default value";
+          code += "result" + memberAccessor
+                  + "set" + Namer::getClassName(a.name()) + "("
+                  + Namer::getClassName(a.name()) + "_" + Namer::removeInvalidCharacters( a.defaultValue() )+");";
+        }
         code.unindent();
         code += "}";
       }
