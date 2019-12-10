@@ -21,6 +21,7 @@ set(kode_LIB_SRCS
    membervariable.cpp
    typedef.cpp
    statemachine.cpp
+   namer.cpp
    automakefile.cpp )
    
 add_library( kode SHARED ${kode_LIB_SRCS} )

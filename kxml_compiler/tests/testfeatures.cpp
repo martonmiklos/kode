@@ -21,10 +21,8 @@
 
 #include "kde-features.h"
 
-#include <kcmdlineargs.h>
-#include <kaboutdata.h>
-#include <kdebug.h>
-
+#include <QCommandLineParser>
+#include <QDebug>
 #include <QFile>
 #include <QTextStream>
 
@@ -57,37 +55,42 @@ static void displayCategory( Category::List categories )
 
 int main( int argc, char **argv )
 {
-  KAboutData aboutData( "testfeatures", 0, ki18n("Dump XML feature list to stdout"),
-                        "0.1" );
-  KCmdLineArgs::init( argc, argv, &aboutData );
+  QCoreApplication app( argc, argv );
+  QCoreApplication::setApplicationName("testfeatures");
+  QCoreApplication::setOrganizationName("kode");
+  QCoreApplication::setApplicationVersion("0.1");
 
-  KCmdLineOptions options;
-  options.add("+featurelist", ki18n("Name of featurelist XML file"));
-  options.add("output <file>", ki18n("Name of output file"));
-  KCmdLineArgs::addCmdLineOptions( options );
+  QCommandLineParser cmdLine;
+  cmdLine.setApplicationDescription("Dump XML feature list to stdout");
+  cmdLine.addHelpOption();
+  cmdLine.addVersionOption();
 
-  KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+  QCommandLineOption featureOption(
+              "featurelist",
+              QCoreApplication::translate("main", "Name of featurelist XML file"));
+  cmdLine.addOption(featureOption);
 
-  if ( args->count() != 1 ) {
-    args->usage( "Wrong number of arguments." );
-  }
+  QCommandLineOption outputOption(
+              "output",
+              QCoreApplication::translate("main", "Name of output file"));
+  cmdLine.addOption(outputOption);
 
-  QString filename = args->arg( 0 );
+  QString filename = cmdLine.value("featurelist");
 
   bool ok;
   Features features = Features::parseFile( filename, &ok );
 
   if ( !ok ) {
-    kError() <<"Parse error";
+    qWarning() <<"Parse error";
   } else {
     Category::List categories = features.categoryList();
     displayCategory( categories );
   }
 
-  if ( args->isSet( "output" ) ) {
-    QString out = args->getOption( "output" );
+  if ( cmdLine.isSet( "output" ) ) {
+    QString out = cmdLine.value( "output" );
     if ( !features.writeFile( out ) ) {
-      kError() <<"Write error";
+      qWarning() <<"Write error";
     }
   }
   return 0;

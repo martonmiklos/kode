@@ -121,7 +121,8 @@ Attribute::List Document::attributes() const
 bool Document::hasAttribute( const Attribute &attribute )
 {
   foreach( Attribute a, mAttributes ) {
-    if ( a.identifier() == attribute.identifier() ) return true;
+    if ( a.identifier() == attribute.identifier()
+     && a.elementName() == attribute.elementName()) return true;
   }
   return false;
 }

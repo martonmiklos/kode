@@ -19,17 +19,34 @@
     Boston, MA 02110-1301, USA.
 */
 
-#include "parserxsdtest.h"
-
+//#include "parserxsdtest.h"
 #include "../parserxsd.h"
+#include "../schema.h"
 
 #include <QFile>
 #include <QDebug>
+#include <QtTest/QtTest>
+
+class ParserXsdTest: public QObject
+{
+    Q_OBJECT
+private slots:
+    void initTestCase();
+    void testElementParsing();
+    void testTypeParsing();
+    void testAttributeParsing();
+    void testRelationParsing();
+    void testSequenceOccurenceParsing();
+    void testSequenceElementOccurenceParsing();
+
+private:
+    Schema::Document mDoc;
+};
 
 void ParserXsdTest::initTestCase()
 {
   RNG::ParserXsd parser;
-  QFile file("simple.xsd");
+  QFile file("data/simple.xsd");
 
   if( !file.open( QIODevice::ReadOnly ) ) {
     QFAIL( "The test file 'simple.xsd' could not be loaded" );

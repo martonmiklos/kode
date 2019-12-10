@@ -85,7 +85,7 @@ Schema::Element ParserXml::parseElement( QXmlStreamReader &xml, bool isArray )
     a.setType( detectType( attribute.value().toString() ) );
     a.setIdentifier( attribute.name().toString() );
     a.setName( attribute.name().toString() );
-
+    a.setElementName(elementName);
     Schema::Relation relation( a.identifier() );
 //          qDebug() << "  ADD" << a.identifier() << element.identifier();
     element.addAttributeRelation( relation );

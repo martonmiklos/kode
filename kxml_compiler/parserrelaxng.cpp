@@ -375,7 +375,7 @@ Schema::Attribute ParserRelaxng::convertToSchemaAttribute( const QString &path,
   Schema::Attribute schemaAttribute;
   schemaAttribute.setName( a->name );
   schemaAttribute.setIdentifier( path + '/' + a->name );
-
+  schemaAttribute.setElementName(path);
   mDocument.addAttribute( schemaAttribute );
 
   return schemaAttribute;
