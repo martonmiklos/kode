@@ -121,9 +121,10 @@ Schema::Document ParserXsd::parse( const XSD::Parser &parser )
       bool found = false;
       XSD::SimpleType simpleType = types.simpleType( element.type().qname(), &found );
       // check if element having restrictions
-      if ( !found )
+      if ( !found ) {
         e.setType( Schema::Node::ComplexType );
-      else {
+        e.setText(false);
+      } else {
         e.setType( Schema::Node::typeFromString(simpleType.baseTypeName().qname()) );
         setType( e, simpleType );
       }
