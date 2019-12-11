@@ -1,4 +1,4 @@
-#include "account.h"
+#include "gen_src/account.h"
 
 #include <QCoreApplication>
 #include <QCommandLineParser>

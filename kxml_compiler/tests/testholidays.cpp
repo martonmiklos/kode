@@ -19,7 +19,7 @@
     Boston, MA 02110-1301, USA.
 */
 
-#include "kde-holidays.h"
+#include "gen_src/kde-holidays.h"
 
 #include <QCoreApplication>
 #include <QCommandLineParser>

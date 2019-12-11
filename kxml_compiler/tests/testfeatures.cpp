@@ -19,7 +19,7 @@
     Boston, MA 02110-1301, USA.
 */
 
-#include "kde-features.h"
+#include "gen_src/kde-features.h"
 
 #include <QCommandLineParser>
 #include <QDebug>

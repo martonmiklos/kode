@@ -9,13 +9,13 @@ MACRO (KODE_ADD_LOCAL_XML_PARSER _sources _current_file)
   get_filename_component(_schema ${_current_file} ABSOLUTE)
   get_filename_component(_basename ${_schema} NAME_WE)
 
-  set(_source_cpp ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp)
-  set(_source_h   ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h)
+  set(_source_cpp ${CMAKE_CURRENT_BINARY_DIR}/gen_src/${_basename}.cpp)
+  set(_source_h   ${CMAKE_CURRENT_BINARY_DIR}/gen_src/${_basename}.h)
 
   add_custom_command(
     OUTPUT ${_source_cpp} ${_source_h}
     COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../kxml_compiler"
-    ARGS ${_schema} ${ARGN}
+    ARGS ${_schema} ${ARGN} "--directory" "gen_src"
     MAIN_DEPENDENCY ${_schema}
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/../kxml_compiler"
 )
@@ -55,8 +55,8 @@ include_directories(
 
 set(testfeatures_SRCS testfeatures.cpp)
 kode_add_local_xml_parser(testfeatures_SRCS data/kde-features.rng)
-set_property(SOURCE kde-features.h PROPERTY SKIP_AUTOMOC ON)
-set_property(SOURCE kde-features.cpp PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/kde-features.h PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/kde-features.cpp PROPERTY SKIP_AUTOMOC ON)
 
 
 add_executable(testfeatures ${testfeatures_SRCS})
@@ -73,8 +73,8 @@ target_link_libraries(testfeatures Qt5::Network)
 
 set(testholidays_SRCS testholidays.cpp)
 kode_add_local_xml_parser(testholidays_SRCS data/kde-holidays.rng)
-set_property(SOURCE kde-holidays.h PROPERTY SKIP_AUTOMOC ON)
-set_property(SOURCE kde-holidays.cpp PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/kde-holidays.h PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/kde-holidays.cpp PROPERTY SKIP_AUTOMOC ON)
 
 add_executable(testholidays ${testholidays_SRCS})
 qt5_use_modules(testholidays Core)
@@ -89,7 +89,7 @@ target_link_libraries(testholidays Qt5::Network)
 ########### parserxsdtest ###############
 
 set(parsertest_SRCS parserxsdtest.cpp)
-set_property(SOURCE parserxsdtest.cpp PROPERTY SKIP_AUTOMOC OFF)
+set_property(SOURCE gen_src/parserxsdtest.cpp PROPERTY SKIP_AUTOMOC OFF)
 
 add_executable(parserxsdtest ${parsertest_SRCS})
 qt5_use_modules(parserxsdtest Core)
@@ -107,8 +107,8 @@ target_link_libraries(parserxsdtest kschema)
 
 set(testaccounts_SRCS testaccounts.cpp)
 kode_add_local_xml_parser(testaccounts_SRCS data/account.xml --create-crud-functions)
-set_property(SOURCE account.h PROPERTY SKIP_AUTOMOC ON)
-set_property(SOURCE account.cpp PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/account.h PROPERTY SKIP_AUTOMOC ON)
+set_property(SOURCE gen_src/account.cpp PROPERTY SKIP_AUTOMOC ON)
 
 add_executable(testaccounts ${testaccounts_SRCS})
 qt5_use_modules(testaccounts Core)
