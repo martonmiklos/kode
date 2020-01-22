@@ -143,6 +143,13 @@ int main( int argc, char **argv )
               QCoreApplication::translate("main", "The generated accessor will return pointers"));
   cmdLine.addOption(pointerAccessor);
 
+  QCommandLineOption outputFileName(
+              QStringLiteral("output-filename"),
+              QCoreApplication::translate("main", "Set the filename of the output files (output will be generated to output-filename.{cpp|h} instead of the basename of the source file.)"),
+              QStringLiteral("output-filename"),
+              QString());
+  cmdLine.addOption(outputFileName);
+
   if (!cmdLine.parse(QCoreApplication::arguments())) {
     qDebug() << cmdLine.errorText();
     return -1;
@@ -156,8 +163,13 @@ int main( int argc, char **argv )
   QString schemaFilename = cmdLine.positionalArguments().at(0);
 
   QFileInfo fi(cmdLine.positionalArguments().at(0));
-  QString baseName = fi.baseName();
-  baseName.remove( "_" );
+  QString baseName;
+  if (cmdLine.isSet(outputFileName)) {
+    baseName = cmdLine.value(outputFileName);
+  } else {
+    baseName = fi.baseName();
+    baseName.remove( "_" );
+  }
 
 
   QFile schemaFile( schemaFilename );
