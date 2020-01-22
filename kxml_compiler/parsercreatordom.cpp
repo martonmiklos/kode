@@ -131,6 +131,10 @@ void ParserCreatorDom::createElementParser( KODE::Class &c,
     code += "result.setValue( " + stringToDataConverter( "element.text()", e.type() ) + " );";
   }
 
+  if (e.baseType() == Schema::Node::String) {
+    code += "result.setStringValue( element.text() );";
+  }
+
   foreach( Schema::Relation r, e.attributeRelations() ) {
     Schema::Attribute a = creator()->document().attribute( r );
 
