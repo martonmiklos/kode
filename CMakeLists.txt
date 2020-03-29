@@ -30,7 +30,6 @@ include_directories(
     ${Qt5Network_INCLUDES}
     ${Qt5Network_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/common
     ${CMAKE_CURRENT_SOURCE_DIR}/libkode
     ${CMAKE_CURRENT_SOURCE_DIR}/kwsdl
 )
