@@ -240,10 +240,10 @@ QString WriterCreator::dataToStringConverter( const QString &data, const Schema:
   case Schema::Element::Int:
   case Schema::Element::Byte:
   case Schema::Element::Short:
+  case Schema::Element::Integer:
     converter = "QString::number( " + data + ", 'f', 0)";
     break;
   case Schema::Element::Decimal:
-  case Schema::Element::Integer:
     converter = QString("QString::number( %1, 'f', %2)").arg(data).arg(element.fractionalDigits());
     break;
   case Schema::Element::Date:
