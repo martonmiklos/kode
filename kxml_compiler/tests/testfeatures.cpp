@@ -21,35 +21,32 @@
 
 #include "kde-features.h"
 
-#include <kcmdlineargs.h>
-#include <kaboutdata.h>
-#include <kdebug.h>
-
+#include <QCommandLineParser>
+#include <QCommandLineOption>
+#include <QCoreApplication>
+#include <QDebug>
 #include <QFile>
 #include <QTextStream>
 
-#include <iostream>
 
 static void displayFeature(const Feature &f)
 {
-    std::cout << "FEATURE: " << f.summary().toLocal8Bit().data() << std::endl;
-    foreach (Responsible r, f.responsibleList()) {
-        std::cout << "  RESPONSIBLE: " << r.name().toLocal8Bit().data() << " ("
-                  << r.email().toLocal8Bit().data() << ")" << std::endl;
-    }
-    std::cout << "  TARGET: " << f.target().toLocal8Bit().data() << std::endl;
-    std::cout << "  STATUS: " << f.status().toLocal8Bit().data() << std::endl;
+    qWarning() << "FEATURE: " << f.summary();
+    for (const auto r : f.responsibleList())
+        qWarning() << "  RESPONSIBLE: " << r.name() << " (" << r.email() << ")";
+
+    qWarning() << "  TARGET: " << f.target();
+    qWarning() << "  STATUS: " << f.status();
 }
 
-static void displayCategory(Category::List categories)
+static void displayCategory(const Category::List categories)
 {
-    foreach (Category c, categories) {
-        std::cout << "CATEGORY: " << c.name().toLocal8Bit().data() << std::endl;
+    for (const auto c : categories) {
+        qWarning() << "CATEGORY: " << c.name();
 
-        Feature::List features = c.featureList();
-        foreach (Feature f, features) {
+        auto features = c.featureList();
+        for (const auto f : qAsConst(features))
             displayFeature(f);
-        }
 
         displayCategory(c.categoryList());
     }
@@ -57,36 +54,36 @@ static void displayCategory(Category::List categories)
 
 int main(int argc, char **argv)
 {
-    KAboutData aboutData("testfeatures", 0, ki18n("Dump XML feature list to stdout"), "0.1");
-    KCmdLineArgs::init(argc, argv, &aboutData);
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("testfeatures");
+    QCoreApplication::setOrganizationName("kode");
 
-    KCmdLineOptions options;
-    options.add("+featurelist", ki18n("Name of featurelist XML file"));
-    options.add("output <file>", ki18n("Name of output file"));
-    KCmdLineArgs::addCmdLineOptions(options);
+    QCommandLineParser cmdLine;
+    QCommandLineOption featureListOption(
+                "featurelist",
+                QCoreApplication::translate("main", "Name of featurelist XML file"),
+                QString());
+    cmdLine.addOption(featureListOption);
 
-    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-
-    if (args->count() != 1) {
-        args->usage("Wrong number of arguments.");
-    }
-
-    QString filename = args->arg(0);
+    QCommandLineOption outputFile(
+                "output",
+                QCoreApplication::translate("main", "Name of output file"),
+                QString());
 
     bool ok;
-    Features features = Features::parseFile(filename, &ok);
+    Features features = Features::parseFile(cmdLine.value(featureListOption), &ok);
 
     if (!ok) {
-        kError() << "Parse error";
+        qDebug() << "Parse error";
     } else {
         Category::List categories = features.categoryList();
         displayCategory(categories);
     }
 
-    if (args->isSet("output")) {
-        QString out = args->getOption("output");
+    if (cmdLine.isSet(outputFile)) {
+        QString out = cmdLine.value(outputFile);
         if (!features.writeFile(out)) {
-            kError() << "Write error";
+            qDebug() << "Write error";
         }
     }
     return 0;

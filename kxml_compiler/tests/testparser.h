@@ -1,7 +1,7 @@
 #ifndef TESTPARSER_H
 #define TESTPARSER_H
 
-#include <QtCore/QObject>
+#include <QObject>
 
 class TestParser : public QObject
 {

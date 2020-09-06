@@ -1,10 +1,12 @@
 #include "testparser.h"
 
-#include <QtTest/QTest>
+#include "account.h"
 
-QTEST_KDEMAIN_CORE(TestParser)
+#include <QtTest>
 
 void TestParser::testParseAccount()
 {
     QCOMPARE(1, 1);
 }
+
+QTEST_APPLESS_MAIN(TestParser)

@@ -133,7 +133,7 @@ Attribute Document::attribute(const QString &identifier, const QString &elementN
             if (elementName.isEmpty())
                 return a;
             else {
-                if (a.elementName() == elementName)
+                if (a.elementName() == elementName || a.elementName().isEmpty())
                     return a;
             }
         }

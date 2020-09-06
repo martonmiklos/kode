@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
     QString filename = cmdLine.positionalArguments().at(0);
 
-    bool ok;
+    bool ok = false;
     HolidayCalendar holidays = HolidayCalendar::parseFile(filename, &ok);
 
     if (!ok) {

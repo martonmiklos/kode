@@ -22,58 +22,48 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR})
 find_package(Qt5Test REQUIRED)
 
 
-# testfeatures
-# FIXME BROKEN
-
+# testfeatures - generates parser/creator from kde-features.rng
 set(testfeatures_SRCS testfeatures.cpp)
 kode_add_local_xml_parser(testfeatures_SRCS data/kde-features.rng)
-#add_executable(testfeatures ${testfeatures_SRCS})
-#target_link_libraries(testfeatures Qt5::Core Qt5::Network	Qt5::Xml)
+add_executable(testfeatures ${testfeatures_SRCS})
+target_link_libraries(testfeatures Qt5::Core Qt5::Network Qt5::Xml)
 
 
 # testholidays
-# FIXME BROKEN
-
 set(testholidays_SRCS testholidays.cpp)
 kode_add_local_xml_parser(testholidays_SRCS data/kde-holidays.rng)
-#add_executable(testholidays ${testholidays_SRCS})
-#target_link_libraries(testholidays	Qt5::Core	Qt5::Network Qt5::Xml)
+add_executable(testholidays ${testholidays_SRCS})
+target_link_libraries(testholidays Qt5::Core Qt5::Network Qt5::Xml)
 
 
 # parserxsdtest
-
 set(parsertest_SRCS parserxsdtest.h parserxsdtest.cpp)
 add_executable(parserxsdtest ${parsertest_SRCS})
 target_link_libraries(parserxsdtest Qt5::Core Qt5::Network Qt5::Test Qt5::Xml)
-target_link_libraries(parserxsdtest	kode libkxml_compiler	xmlschema	xmlcommon)
+target_link_libraries(parserxsdtest kode libkxml_compiler xmlschema xmlcommon)
 
 
 # testaccounts
-# FIXME BROKEN
-
 set(testaccounts_SRCS testaccounts.cpp)
-kode_add_local_xml_parser(testaccounts_SRCS data/account.xml
-	--create-crud-functions)
-#add_executable(testaccounts ${testaccounts_SRCS})
-#target_link_libraries(testaccounts Qt5::Core Qt5::Network	Qt5::Xml)
+kode_add_local_xml_parser(testaccounts_SRCS data/account.xml --create-crud-functions)
+add_executable(testaccounts ${testaccounts_SRCS})
+target_link_libraries(testaccounts Qt5::Core Qt5::Network Qt5::Xml)
 
 
-# testparser
-# FIXME BROKEN
-
+# testparser - just to see if the generated code is compilable
 set(testparser_SRCS testparser.h testparser.cpp)
-#add_executable(testparser ${testparser_SRCS})
-#target_link_libraries(testparser Qt5::Core Qt5::Network Qt5::Test Qt5::Xml)
+kode_add_local_xml_parser(testparser_SRCS data/account.xml)
+add_executable(testparser ${testparser_SRCS})
+target_link_libraries(testparser Qt5::Core Qt5::Network Qt5::Test Qt5::Xml)
 
 # tests
-
 add_test(RunKXmlCompiler ${EXECUTABLE_OUTPUT_PATH}/../kxml_compiler --help)
 add_test(RunParserxsdtest ${EXECUTABLE_OUTPUT_PATH}/parserxsdtest)
-#add_test(RunTestFeatures ${EXECUTABLE_OUTPUT_PATH}/testfeatures)
-#add_test(RunTestHolidays ${EXECUTABLE_OUTPUT_PATH}/testholidays)
-#add_test(RunTestAccount ${EXECUTABLE_OUTPUT_PATH}/testaccounts
-#	${CMAKE_CURRENT_SOURCE_DIR}/data/account.xml)
-#add_test(RunTestAccount2 ${EXECUTABLE_OUTPUT_PATH}/testaccounts
-#	${CMAKE_CURRENT_SOURCE_DIR}/data/account2.xml
-#	${CMAKE_CURRENT_SOURCE_DIR}/data/out_account2.xml)
-#add_test(RunTestParser ${EXECUTABLE_OUTPUT_PATH}/testparser)
+add_test(RunTestFeatures ${EXECUTABLE_OUTPUT_PATH}/testfeatures)
+add_test(RunTestHolidays ${EXECUTABLE_OUTPUT_PATH}/testholidays)
+add_test(RunTestAccount ${EXECUTABLE_OUTPUT_PATH}/testaccounts
+        ${CMAKE_CURRENT_SOURCE_DIR}/data/account.xml)
+add_test(RunTestAccount2 ${EXECUTABLE_OUTPUT_PATH}/testaccounts
+        ${CMAKE_CURRENT_SOURCE_DIR}/data/account2.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/data/out_account2.xml)
+add_test(RunTestParser ${EXECUTABLE_OUTPUT_PATH}/testparser)

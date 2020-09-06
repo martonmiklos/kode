@@ -92,13 +92,15 @@ void WriterCreator::createElementWriter(KODE::Class &c, const Schema::Element &e
         } else {
             code += "if ( !value().isEmpty() ) {";
         }
-        code += "  xml.writeStartElement( \"" + tag + "\" );";
+        code.indent();
+        code += "xml.writeStartElement( \"" + tag + "\" );";
 
         code += createAttributeWriter(element);
 
         QString data = dataToStringConverter("value()", element.type());
-        code += "  xml.writeCharacters( " + data + " );";
-        code += "  xml.writeEndElement();";
+        code += "xml.writeCharacters( " + data + " );";
+        code += "xml.writeEndElement();";
+        code.unindent();
         code += "}";
     } else {
         bool pureList = true;
@@ -201,16 +203,34 @@ KODE::Code WriterCreator::createAttributeWriter(const Schema::Element &element)
     foreach (Schema::Relation r, element.attributeRelations()) {
         Schema::Attribute a = mDocument.attribute(r);
 
-        QString data = Namer::getAccessor(a.name()) + "()";
+        const auto data = Namer::getAccessor(a.name()) + "()";
         if (a.type() != Schema::Node::Enumeration) {
-            code.addLine("xml.writeAttribute(\"" + a.name() + "\", "
-                         + dataToStringConverter(data, a.type()) + " );");
+            if (!a.required()) {
+                const auto attr = dataToStringConverter(data, a.type());
+                code.addLine(QString("if (!%1.isEmpty())").arg(attr));
+                code.indent();
+                code.addLine("xml.writeAttribute(\"" + a.name() + "\", " + attr + " );");
+                code.unindent();
+            } else {
+                code.addLine("xml.writeAttribute(\"" + a.name() + "\", "
+                             + dataToStringConverter(data, a.type()) + " );");
+            }
         } else if (a.type() == Schema::Node::Enumeration) {
-            code.addLine("xml.writeAttribute(\"" + a.name() + "\", "
-                         + KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString( "
-                         + KODE::Style::lowerFirst(Namer::getClassName(a.name()))
-                         + "() "
-                           "));");
+            if (!a.required()) {
+                const auto attr = KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString( "
+                        + KODE::Style::lowerFirst(Namer::getClassName(a.name()))
+                        + "()";
+                code.addLine(QString("if (!%1.isEmpty())").arg(attr));
+                code.indent();
+                code.addLine("xml.writeAttribute(\"" + a.name() + "\", " + attr +"));");
+                code.unindent();
+            } else {
+                code.addLine("xml.writeAttribute(\"" + a.name() + "\", "
+                             + KODE::Style::lowerFirst(Namer::getClassName(a.name())) + "EnumToString( "
+                             + KODE::Style::lowerFirst(Namer::getClassName(a.name()))
+                             + "() "
+                               "));");
+            }
         }
     }
 

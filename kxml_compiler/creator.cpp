@@ -173,7 +173,7 @@ void Creator::createCrudFunctions(KODE::Class &c, const QString &type)
     KODE::Function finder("find" + type, type);
 
     finder.addArgument("const QString &id");
-    finder.addArgument(KODE::Function::Argument("Flags flags", "Flags_None"));
+    finder.addArgument(KODE::Function::Argument("Flags flags", "None"));
 
     QString listMember = "m" + type + "List";
 
@@ -182,7 +182,7 @@ void Creator::createCrudFunctions(KODE::Class &c, const QString &type)
     code += "  if ( v.id() == id ) return v;";
     code += "}";
     code += type + " v;";
-    code += "if ( flags == Flags_AutoCreate ) {";
+    code += "if ( flags == AutoCreate ) {";
     code += "  v.setId( id );";
     code += "}";
     code += "return v;";

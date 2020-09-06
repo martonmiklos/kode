@@ -52,7 +52,9 @@ Makefile*
 target_wrapper.*
 
 # QtCreator
-
+*.creator
+*.files
+*.includes
 *.autosave
 
 # QtCtreator Qml
@@ -71,5 +73,12 @@ CMakeLists.txt.user*
 .directory
 mocs*
 kxml_compiler/kxml_compiler*
+
+# cmake generated stuff
+.cmake
+DartConfiguration.tcl
+qtcsettings.cmake
+# cmake generates codeblocks project WTF?
+*.cbp
 
 # test generated codes
