@@ -387,8 +387,17 @@ void Creator::createClass(const Schema::Element &element)
         }
     }
 
-    foreach (KODE::Enum e, description.enums()) {
+    for (const auto e : description.enums()) {
         c.addEnum(e);
+
+        auto enumParserFunction = enumParserMethod(e);
+        enumParserFunction.setReturnType(e.name() + "::" + enumParserFunction.returnType());
+        enumParserFunction.setAccess(KODE::Function::Private);
+        c.addFunction(enumParserFunction);
+
+        auto enumSerializerFunction = enumSerializerMethod(e);
+        enumSerializerFunction.setAccess(KODE::Function::Private);
+        c.addFunction(enumSerializerFunction);
     }
 
     if (mUseQEnums)
@@ -594,6 +603,67 @@ void Creator::setUseQEnums(bool useQEnums)
 bool Creator::useQEnums() const
 {
     return mUseQEnums;
+}
+
+KODE::Function Creator::enumParserMethod(const KODE::Enum enum_)
+{
+    KODE::Function ret(KODE::Style::lowerFirst(enum_.name()) + "FromString", enum_.name());
+    ret.setStatic(true);
+
+    ret.addArgument("const QString & v");
+    ret.addArgument(KODE::Function::Argument("bool *ok", "nullptr"));
+
+    KODE::Code code;
+    code += "if (ok) *ok = true;";
+    code.newLine();
+
+    auto first = true;
+    for (const auto enumItem : enum_.enumValues()) {
+        if (first)
+            first = false;
+        else
+            code += "else "; // prefix of the else if (...) lines
+        code += "if ( v == \"" + enumItem + "\" )";
+        code.indent();
+        code += "return " + Namer::sanitize(enumItem) + ";";
+        code.unindent();
+    }
+    code += "else";
+    code.indent();
+    code += "if (ok) *ok = false;";
+    code.unindent();
+    code.newLine();
+    code += "return Invalid;";
+
+    ret.setBody(code);
+    return ret;
+}
+
+KODE::Function Creator::enumSerializerMethod(const KODE::Enum enum_)
+{
+    KODE::Function ret(KODE::Style::lowerFirst(enum_.name()) + "ToString", "QString");
+    ret.setStatic(true);
+    ret.addArgument(QString("const %1 & v").arg(enum_.name()));
+
+    KODE::Code code;
+    code += "switch( v ) {";
+    code.indent();
+    for (const auto enumItem : enum_.enumValues())
+        code += QString("case %1: return \"%2\";").arg(Namer::sanitize(enumItem), enumItem);
+
+    code += "Invalid:";
+    code += "default:";
+    code.indent();
+    code += QString("qCritical() << \"Unable to serialize a(n) %1 enum because it has invalid "
+                    "value\" << v;")
+                    .arg(enum_.name());
+    code += "return QString();";
+    code.unindent();
+    code.unindent();
+    code += "}";
+    ret.setBody(code);
+    ret.setReturnType("QString");
+    return ret;
 }
 
 ParserCreator::ParserCreator(Creator *c) : mCreator(c) {}

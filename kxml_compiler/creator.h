@@ -126,6 +126,9 @@ public:
     void setUseQEnums(bool useQEnums);
     bool useQEnums() const;
 
+    static KODE::Function enumParserMethod(const KODE::Enum enum_);
+    static KODE::Function enumSerializerMethod(const KODE::Enum enum_);
+
 protected:
     void setExternalClassNames();
 
